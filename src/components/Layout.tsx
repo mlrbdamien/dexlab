@@ -59,7 +59,7 @@ export function Layout() {
       </aside>
 
       {/* ── Main ── */}
-      <div className="flex-1 md:ml-[188px] min-h-screen flex flex-col">
+      <div className="flex-1 min-w-0 md:ml-[188px] min-h-screen flex flex-col">
         <header className="md:hidden sticky top-0 z-40 flex h-12 items-center justify-between px-4 bg-canvas border-b border-line">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-accent">
