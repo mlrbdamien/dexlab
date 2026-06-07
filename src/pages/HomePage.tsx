@@ -12,9 +12,9 @@ import { TabCheckin } from '@/components/tabs/TabCheckin'
 import { TabSerotheque } from '@/components/tabs/TabSerotheque'
 import { TabGestion } from '@/components/tabs/TabGestion'
 import { TabCas } from '@/components/tabs/TabCas'
-import { procedures } from '@/components/Layout'
+import { procedures } from '@/lib/navigation'
 import { destColors } from '@/lib/destStyles'
-import type { LayoutCtx } from '@/components/Layout'
+import type { LayoutCtx } from '@/lib/navigation'
 import type { Tube, CentrifugationStatus } from '@/lib/types'
 
 const panels: Record<string, React.FC> = {

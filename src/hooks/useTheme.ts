@@ -17,7 +17,7 @@ export function useTheme() {
   const toggle = useCallback(() => {
     setTheme(prev => {
       const next: Theme = prev === 'dark' ? 'light' : 'dark'
-      try { localStorage.setItem('lumen-theme', next) } catch {}
+      try { localStorage.setItem('lumen-theme', next) } catch { /* stockage indisponible (mode privé / quota) — ignoré */ }
       return next
     })
   }, [])
