@@ -3,7 +3,7 @@ import {
   CheckCircle, Snowflake, Building2, AlertTriangle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import type { Tube } from '@/lib/types'
+import type { Materiel } from '@/lib/types'
 
 // --- Navigation des procédures ---
 
@@ -29,5 +29,7 @@ export interface LayoutCtx {
   setSection: (s: Section) => void
   query: string
   setQuery: (q: string) => void
-  filteredTubes: Tube[]
+  materiel: Materiel[]
+  filteredMateriel: Materiel[]
+  loading: boolean
 }

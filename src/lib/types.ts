@@ -51,6 +51,32 @@ export interface Tube {
   motsCles: string;         // chaîne plate pour recherche fuzzy
 }
 
+// --- Matériel (modèle Supabase, élargi) ---
+
+export interface MaterielDestination {
+  label: string;
+  detail: string;
+}
+
+export interface Materiel {
+  id: string;
+  type: string;             // 'tube' | 'consommable' | 'contenant' | …
+  nom: string;
+  sousTitre: string;
+  etiquette: string;
+  couleur: string;
+  centrifugation: CentrifugationStatus;
+  centrifugationDetail: string;
+  codeExces: string;
+  codeSansAnalyse: string;
+  codeReserve: string;
+  destinations: MaterielDestination[];
+  notes: string[];
+  alertes: string[];
+  casParticuliers: string[];
+  position: number;
+}
+
 // --- Statifs de tri ---
 
 export interface Statif {

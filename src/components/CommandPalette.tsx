@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Fuse from 'fuse.js'
 import { Search, FileText, Crosshair, Sun, Moon, CornerDownLeft, TestTube, LogOut } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { tubes } from '@/data/tubes'
 import { procedures } from '@/lib/navigation'
 import type { Section } from '@/lib/navigation'
+import type { Materiel } from '@/lib/types'
 import type { LucideIcon } from 'lucide-react'
 
 const SW = 1.75
@@ -20,6 +20,7 @@ interface Cmd {
 }
 
 interface Props {
+  materiel: Materiel[]
   onClose: () => void
   onNavigate: (s: Section) => void
   onToggleTheme: () => void
@@ -27,7 +28,7 @@ interface Props {
 }
 
 // Monté uniquement lorsqu'ouvert (état frais à chaque ouverture).
-export function CommandPalette({ onClose, onNavigate, onToggleTheme, theme }: Props) {
+export function CommandPalette({ materiel, onClose, onNavigate, onToggleTheme, theme }: Props) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -42,9 +43,9 @@ export function CommandPalette({ onClose, onNavigate, onToggleTheme, theme }: Pr
       { id: 'action-logout', label: 'Se déconnecter', group: 'Action', icon: LogOut, keywords: 'deconnexion logout quitter session', run: () => { void supabase?.auth.signOut(); onClose() } },
     ]
     const procs: Cmd[] = procedures.map(p => ({ id: `proc-${p.id}`, label: p.label, group: 'Procédure', icon: p.icon, keywords: `procedure ${p.label}`, run: go(p.id) }))
-    const tubeCmds: Cmd[] = tubes.map(t => ({ id: `tube-${t.id}`, label: t.nom, group: 'Tube', icon: TestTube, keywords: `${t.nom} ${t.sousTitre} ${t.motsCles} ${t.etiquette}`, run: go(`tube:${t.id}`) }))
-    return [...nav, ...procs, ...tubeCmds]
-  }, [theme, onNavigate, onToggleTheme, onClose])
+    const matCmds: Cmd[] = materiel.map(m => ({ id: `mat-${m.id}`, label: m.nom, group: 'Matériel', icon: TestTube, keywords: `${m.nom} ${m.sousTitre} ${m.etiquette}`, run: go(`tube:${m.id}`) }))
+    return [...nav, ...procs, ...matCmds]
+  }, [materiel, theme, onNavigate, onToggleTheme, onClose])
 
   const fuse = useMemo(() => new Fuse(commands, { keys: ['label', 'keywords'], threshold: 0.4, ignoreLocation: true }), [commands])
 

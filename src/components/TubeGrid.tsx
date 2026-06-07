@@ -1,11 +1,11 @@
-import type { Tube } from '@/lib/types'
+import type { Materiel } from '@/lib/types'
 import { TubeCard } from '@/components/TubeCard'
 
 interface Props {
-  tubes: Tube[]
+  tubes: Materiel[]
   isFav: (id: string) => boolean
   onToggleFav: (id: string) => void
-  onSelect: (tube: Tube) => void
+  onSelect: (tube: Materiel) => void
 }
 
 export function TubeGrid({ tubes, isFav, onToggleFav, onSelect }: Props) {

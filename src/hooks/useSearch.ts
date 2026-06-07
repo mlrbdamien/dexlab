@@ -1,21 +1,19 @@
 import { useState, useMemo } from 'react'
 import Fuse from 'fuse.js'
-import { tubes } from '@/data/tubes'
-import type { Tube } from '@/lib/types'
+import type { Materiel } from '@/lib/types'
 
-const tubeFuse = new Fuse(tubes, {
-  keys: ['nom', 'sousTitre', 'motsCles', 'etiquette'],
-  threshold: 0.35,
-  ignoreLocation: true,
-})
-
-export function useSearch() {
+export function useSearch(materiel: Materiel[]) {
   const [query, setQuery] = useState('')
 
-  const filteredTubes: Tube[] = useMemo(() => {
-    if (!query.trim()) return tubes
-    return tubeFuse.search(query).map(r => r.item)
-  }, [query])
+  const fuse = useMemo(
+    () => new Fuse(materiel, { keys: ['nom', 'sousTitre', 'etiquette'], threshold: 0.35, ignoreLocation: true }),
+    [materiel],
+  )
 
-  return { query, setQuery, filteredTubes } as const
+  const filteredMateriel: Materiel[] = useMemo(() => {
+    if (!query.trim()) return materiel
+    return fuse.search(query).map(r => r.item)
+  }, [query, fuse, materiel])
+
+  return { query, setQuery, filteredMateriel } as const
 }

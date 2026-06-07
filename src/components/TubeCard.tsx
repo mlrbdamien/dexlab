@@ -1,5 +1,5 @@
 import { Star } from 'lucide-react'
-import type { Tube, CentrifugationStatus } from '@/lib/types'
+import type { Materiel, CentrifugationStatus } from '@/lib/types'
 
 const centriLabel: Record<CentrifugationStatus, string> = {
   oui: 'OUI', obligatoire: 'OBL', non: 'NON', variable: 'VAR', na: 'N/A',
@@ -14,7 +14,7 @@ const centriStyle: Record<CentrifugationStatus, string> = {
 }
 
 interface Props {
-  tube: Tube
+  tube: Materiel
   isFav: boolean
   onToggleFav: () => void
   onClick: () => void

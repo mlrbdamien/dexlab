@@ -4,6 +4,7 @@ import { Moon, Sun, Droplets, Crosshair, BookOpen, PanelLeft, PanelLeftClose, Lo
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/hooks/useTheme'
 import { useSearch } from '@/hooks/useSearch'
+import { useMateriel } from '@/hooks/useMateriel'
 import { SearchBar } from '@/components/SearchBar'
 import { TickerBanner } from '@/components/TickerBanner'
 import { Changelog } from '@/components/Changelog'
@@ -17,7 +18,8 @@ const SW = 1.75
 export function Layout() {
   const { theme, toggle } = useTheme()
   const [section, setSection] = useState<Section>('home')
-  const { query, setQuery, filteredTubes } = useSearch()
+  const { materiel, loading } = useMateriel()
+  const { query, setQuery, filteredMateriel } = useSearch(materiel)
 
   const [collapsed, setCollapsed] = useState(() => {
     try { return localStorage.getItem('lumen-sidebar') === 'collapsed' } catch { return false }
@@ -51,7 +53,7 @@ export function Layout() {
     setSection(map[tab] ?? 'home')
   }
 
-  const ctx: LayoutCtx = { section, setSection, query, setQuery, filteredTubes }
+  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, loading }
 
   return (
     <div className="flex min-h-screen bg-canvas text-ink">
@@ -133,7 +135,7 @@ export function Layout() {
         </div>
       </nav>
 
-      {paletteOpen && <CommandPalette onClose={closePalette} onNavigate={setSection} onToggleTheme={toggle} theme={theme} />}
+      {paletteOpen && <CommandPalette materiel={materiel} onClose={closePalette} onNavigate={setSection} onToggleTheme={toggle} theme={theme} />}
     </div>
   )
 }
