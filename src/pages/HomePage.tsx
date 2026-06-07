@@ -1,31 +1,16 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { TubeGrid } from '@/components/TubeGrid'
-import { TabEnregistrement } from '@/components/tabs/TabEnregistrement'
-import { TabFeuilles } from '@/components/tabs/TabFeuilles'
-import { TabStatifs } from '@/components/tabs/TabStatifs'
-import { TabEtiquettes } from '@/components/tabs/TabEtiquettes'
-import { TabCheckin } from '@/components/tabs/TabCheckin'
-import { TabSerotheque } from '@/components/tabs/TabSerotheque'
-import { TabGestion } from '@/components/tabs/TabGestion'
-import { TabCas } from '@/components/tabs/TabCas'
-import { procedures } from '@/lib/navigation'
+import { Markdown } from '@/components/Markdown'
 import type { LayoutCtx } from '@/lib/navigation'
 import type { Materiel, CentrifugationStatus } from '@/lib/types'
-
-const panels: Record<string, React.FC> = {
-  enregistrement: TabEnregistrement, feuilles: TabFeuilles,
-  statifs: TabStatifs, etiquettes: TabEtiquettes,
-  checkin: TabCheckin, serotheque: TabSerotheque,
-  gestion: TabGestion, cas: TabCas,
-}
 
 const SW = 1.75
 
 export function HomePage() {
-  const { section, setSection, query, materiel, filteredMateriel, loading } = useOutletContext<LayoutCtx>()
+  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading } = useOutletContext<LayoutCtx>()
   const { isFav, toggle: toggleFav } = useFavorites()
 
   useEffect(() => {
@@ -38,9 +23,9 @@ export function HomePage() {
   const tubeId = isTube ? section.slice(5) : null
   const selectedTube = tubeId ? materiel.find(m => m.id === tubeId) ?? null : null
 
+  const procedureDocs = documents.filter(d => d.type === 'procedure')
   const isProc = !['home', 'procedures'].includes(section) && !isTube
-  const Panel = isProc ? panels[section] : null
-  const procLabel = isProc ? procedures.find(p => p.id === section)?.label : null
+  const procDoc = isProc ? documents.find(d => d.id === section) ?? null : null
 
   const hasQuery = query.trim().length > 0
   const favMateriel = useMemo(() => materiel.filter(m => isFav(m.id)), [materiel, isFav])
@@ -100,25 +85,38 @@ export function HomePage() {
 
       {section === 'procedures' && (
         <div className="fade-up space-y-1.5 mt-2">
-          {procedures.map(p => (
-            <button key={p.id} onClick={() => setSection(p.id)}
+          {documentsLoading && procedureDocs.length === 0 ? (
+            <p className="py-10 text-center text-[0.82rem] text-ink-3">Chargement…</p>
+          ) : procedureDocs.length === 0 ? (
+            <p className="py-10 text-center text-[0.82rem] text-ink-3">Aucune procédure.</p>
+          ) : procedureDocs.map(d => (
+            <button key={d.id} onClick={() => setSection(d.id)}
               className="state-hover flex w-full items-center gap-2.5 rounded-xl border border-line bg-canvas px-4 py-3.5 text-left transition-colors duration-150"
             >
-              <p.icon className="h-4 w-4 shrink-0 text-accent" strokeWidth={SW} />
-              <span className="flex-1 text-[0.82rem] font-medium text-ink">{p.label}</span>
+              <FileText className="h-4 w-4 shrink-0 text-accent" strokeWidth={SW} />
+              <span className="flex-1 text-[0.82rem] font-medium text-ink">{d.titre}</span>
               <ChevronRight className="h-3.5 w-3.5 text-ink-3/50" strokeWidth={SW} />
             </button>
           ))}
         </div>
       )}
 
-      {isProc && Panel && (
+      {isProc && procDoc && (
         <div className="fade-up">
           <button onClick={() => setSection('procedures')} className="md:hidden mb-3 mt-1 flex items-center gap-1 text-[0.78rem] font-medium text-accent">
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
           </button>
-          <h2 className="mb-4 text-base font-bold text-ink md:mt-2">{procLabel}</h2>
-          <Panel />
+          <h2 className="mb-4 text-base font-bold text-ink md:mt-2">{procDoc.titre}</h2>
+          <Markdown>{procDoc.contenu}</Markdown>
+        </div>
+      )}
+
+      {isProc && !procDoc && (
+        <div className="fade-up">
+          <button onClick={() => setSection('procedures')} className="md:hidden mb-3 mt-1 flex items-center gap-1 text-[0.78rem] font-medium text-accent">
+            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
+          </button>
+          <p className="py-10 text-center text-[0.82rem] text-ink-3">{documentsLoading ? 'Chargement…' : 'Procédure introuvable.'}</p>
         </div>
       )}
     </>

@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Outlet } from 'react-router-dom'
-import { Moon, Sun, Droplets, Crosshair, BookOpen, PanelLeft, PanelLeftClose, LogOut } from 'lucide-react'
+import { Moon, Sun, Droplets, Crosshair, BookOpen, PanelLeft, PanelLeftClose, LogOut, FileText } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/hooks/useTheme'
 import { useSearch } from '@/hooks/useSearch'
 import { useMateriel } from '@/hooks/useMateriel'
+import { useDocuments } from '@/hooks/useDocuments'
 import { SearchBar } from '@/components/SearchBar'
 import { TickerBanner } from '@/components/TickerBanner'
 import { Changelog } from '@/components/Changelog'
 import { CommandPalette } from '@/components/CommandPalette'
-import { procedures } from '@/lib/navigation'
 import type { LucideIcon } from 'lucide-react'
 import type { Section, LayoutCtx } from '@/lib/navigation'
 
@@ -19,6 +19,8 @@ export function Layout() {
   const { theme, toggle } = useTheme()
   const [section, setSection] = useState<Section>('home')
   const { materiel, loading } = useMateriel()
+  const { documents, loading: documentsLoading } = useDocuments()
+  const procedureDocs = documents.filter(d => d.type === 'procedure')
   const { query, setQuery, filteredMateriel } = useSearch(materiel)
 
   const [collapsed, setCollapsed] = useState(() => {
@@ -53,7 +55,7 @@ export function Layout() {
     setSection(map[tab] ?? 'home')
   }
 
-  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, loading }
+  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading }
 
   return (
     <div className="flex min-h-screen bg-canvas text-ink">
@@ -77,8 +79,8 @@ export function Layout() {
           {!collapsed && <p className="px-3 pt-5 pb-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-ink-3">Procédures</p>}
           {collapsed && <div className="mx-2 my-2 h-px bg-line" />}
 
-          {procedures.map(p => (
-            <SideItem key={p.id} icon={p.icon} label={p.label} collapsed={collapsed} active={section === p.id} onClick={() => setSection(p.id)} />
+          {procedureDocs.map(d => (
+            <SideItem key={d.id} icon={FileText} label={d.titre} collapsed={collapsed} active={section === d.id} onClick={() => setSection(d.id)} />
           ))}
         </nav>
 
@@ -135,7 +137,7 @@ export function Layout() {
         </div>
       </nav>
 
-      {paletteOpen && <CommandPalette materiel={materiel} onClose={closePalette} onNavigate={setSection} onToggleTheme={toggle} theme={theme} />}
+      {paletteOpen && <CommandPalette materiel={materiel} documents={documents} onClose={closePalette} onNavigate={setSection} onToggleTheme={toggle} theme={theme} />}
     </div>
   )
 }

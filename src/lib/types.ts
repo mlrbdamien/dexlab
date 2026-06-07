@@ -77,6 +77,20 @@ export interface Materiel {
   position: number;
 }
 
+// --- Documents (notes / mémos / procédures) ---
+
+export type DocType = 'note' | 'memo' | 'procedure';
+
+export interface DocItem {
+  id: string;
+  type: DocType;
+  titre: string;
+  contenu: string;          // markdown
+  tags: string[];
+  epingle: boolean;
+  position: number;
+}
+
 // --- Statifs de tri ---
 
 export interface Statif {
