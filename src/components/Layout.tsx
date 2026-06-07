@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Outlet } from 'react-router-dom'
-import { Moon, Sun, Droplets, Crosshair, BookOpen, PanelLeft, PanelLeftClose } from 'lucide-react'
+import { Moon, Sun, Droplets, Crosshair, BookOpen, PanelLeft, PanelLeftClose, LogOut } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/hooks/useTheme'
 import { useSearch } from '@/hooks/useSearch'
 import { SearchBar } from '@/components/SearchBar'
@@ -82,6 +83,7 @@ export function Layout() {
         <div className={`mt-auto shrink-0 border-t border-line py-3 ${collapsed ? 'px-2' : 'px-3'} space-y-1`}>
           <SideItem icon={collapsed ? PanelLeft : PanelLeftClose} label={collapsed ? 'Déplier le menu' : 'Replier le menu'} collapsed={collapsed} onClick={toggleCollapsed} />
           <SideItem icon={theme === 'dark' ? Sun : Moon} label={theme === 'dark' ? 'Mode clair' : 'Mode sombre'} collapsed={collapsed} onClick={toggle} />
+          <SideItem icon={LogOut} label="Se déconnecter" collapsed={collapsed} onClick={() => { void supabase?.auth.signOut() }} />
         </div>
       </aside>
 

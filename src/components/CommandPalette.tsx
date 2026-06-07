@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Fuse from 'fuse.js'
-import { Search, FileText, Crosshair, Sun, Moon, CornerDownLeft, TestTube } from 'lucide-react'
+import { Search, FileText, Crosshair, Sun, Moon, CornerDownLeft, TestTube, LogOut } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 import { tubes } from '@/data/tubes'
 import { procedures } from '@/lib/navigation'
 import type { Section } from '@/lib/navigation'
@@ -35,9 +36,10 @@ export function CommandPalette({ onClose, onNavigate, onToggleTheme, theme }: Pr
   const commands: Cmd[] = useMemo(() => {
     const go = (s: Section) => () => { onNavigate(s); onClose() }
     const nav: Cmd[] = [
-      { id: 'nav-home', label: 'Identifier les tubes', group: 'Aller à', icon: Crosshair, keywords: 'accueil home identifier tubes', run: go('home') },
+      { id: 'nav-home', label: 'Matériel', group: 'Aller à', icon: Crosshair, keywords: 'accueil home materiel tubes identifier', run: go('home') },
       { id: 'nav-proc', label: 'Procédures', group: 'Aller à', icon: FileText, keywords: 'procedures', run: go('procedures') },
       { id: 'action-theme', label: theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre', group: 'Action', icon: theme === 'dark' ? Sun : Moon, keywords: 'theme mode sombre clair dark light', run: () => { onToggleTheme(); onClose() } },
+      { id: 'action-logout', label: 'Se déconnecter', group: 'Action', icon: LogOut, keywords: 'deconnexion logout quitter session', run: () => { void supabase?.auth.signOut(); onClose() } },
     ]
     const procs: Cmd[] = procedures.map(p => ({ id: `proc-${p.id}`, label: p.label, group: 'Procédure', icon: p.icon, keywords: `procedure ${p.label}`, run: go(p.id) }))
     const tubeCmds: Cmd[] = tubes.map(t => ({ id: `tube-${t.id}`, label: t.nom, group: 'Tube', icon: TestTube, keywords: `${t.nom} ${t.sousTitre} ${t.motsCles} ${t.etiquette}`, run: go(`tube:${t.id}`) }))
