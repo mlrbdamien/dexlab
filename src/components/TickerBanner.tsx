@@ -4,7 +4,7 @@ export function TickerBanner() {
   const items = checklist.map(c => `✓ ${c}`)
 
   return (
-    <div className="ticker-banner shrink-0 border-b border-accent/20 bg-accent-soft overflow-hidden">
+    <div role="region" aria-label="Rappels" className="ticker-banner shrink-0 border-b border-accent/20 bg-accent-soft overflow-hidden">
       <div className="ticker-track flex w-max">
         {[0, 1].map(copy => (
           <div key={copy} className="ticker-content flex items-center gap-0 px-4 py-2" aria-hidden={copy === 1}>

@@ -39,7 +39,7 @@ export function Layout() {
           <span className="text-[0.78rem] font-semibold text-ink">Dexlab</span>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-2 pt-0.5 pb-2 space-y-px">
+        <nav aria-label="Navigation principale" className="flex-1 overflow-y-auto px-2 pt-0.5 pb-2 space-y-px">
           <NavItem icon={Crosshair} label="Identifier" active={section === 'home' || section.startsWith('tube:')} onClick={() => setSection('home')} />
 
           <div className="my-2 mx-2 h-px bg-line" />
@@ -67,8 +67,8 @@ export function Layout() {
             </div>
             <span className="text-[0.78rem] font-semibold text-ink">Dexlab</span>
           </div>
-          <button onClick={toggle} className="flex h-7 w-7 items-center justify-center rounded text-ink-2 hover:text-ink hover:bg-canvas-3 transition-colors">
-            {theme === 'dark' ? <Sun className="h-3.5 w-3.5" strokeWidth={SW} /> : <Moon className="h-3.5 w-3.5" strokeWidth={SW} />}
+          <button onClick={toggle} aria-label={theme === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre'} className="flex h-7 w-7 items-center justify-center rounded text-ink-2 hover:text-ink hover:bg-canvas-3 transition-colors">
+            {theme === 'dark' ? <Sun aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> : <Moon aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} />}
           </button>
         </header>
 
@@ -85,7 +85,7 @@ export function Layout() {
       </div>
 
       {/* ── Mobile Bottom Bar ── */}
-      <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-canvas border-t border-line" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <nav aria-label="Navigation mobile" className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-canvas border-t border-line" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="flex h-14">
           <BTab icon={Crosshair}  label="Identifier"  active={mobileTab === 'identify'}   onClick={() => go('identify')} />
           <BTab icon={BookOpen}   label="Procédures"   active={mobileTab === 'procedures'} onClick={() => go('procedures')} />
@@ -99,11 +99,12 @@ function NavItem({ icon: Icon, label, active, onClick }: { icon: LucideIcon; lab
   return (
     <button
       onClick={onClick}
+      aria-current={active ? 'page' : undefined}
       className={`state-hover flex w-full items-center gap-2 rounded-md px-2.5 py-[7px] text-[0.75rem] font-medium transition-colors ${
         active ? 'bg-accent-soft text-accent' : 'text-ink-2 hover:text-ink'
       }`}
     >
-      <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={SW} />
+      <Icon aria-hidden="true" className="h-[15px] w-[15px] shrink-0" strokeWidth={SW} />
       <span className="truncate leading-tight">{label}</span>
     </button>
   )
@@ -111,8 +112,8 @@ function NavItem({ icon: Icon, label, active, onClick }: { icon: LucideIcon; lab
 
 function BTab({ icon: Icon, label, active, onClick }: { icon: LucideIcon; label: string; active: boolean; onClick: () => void }) {
   return (
-    <button onClick={onClick} className={`flex flex-1 flex-col items-center justify-center gap-0.5 transition-colors ${active ? 'text-accent' : 'text-ink-3'}`}>
-      <Icon className="h-[18px] w-[18px]" strokeWidth={active ? 2 : SW} />
+    <button onClick={onClick} aria-current={active ? 'page' : undefined} className={`flex flex-1 flex-col items-center justify-center gap-0.5 transition-colors ${active ? 'text-accent' : 'text-ink-3'}`}>
+      <Icon aria-hidden="true" className="h-[18px] w-[18px]" strokeWidth={active ? 2 : SW} />
       <span className="text-[0.58rem] font-medium">{label}</span>
     </button>
   )
