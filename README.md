@@ -1,9 +1,3 @@
-# Dexlab
-
-Outil de référence pour la gestion des échantillons au soutien laboratoire de l'Hôpital du Valais (Sion).
-
-**Site en ligne :** [mlrbdamien.github.io/dexlab](https://mlrbdamien.github.io/dexlab/)
-
 ## Stack
 
 - React 19 + TypeScript
@@ -38,7 +32,7 @@ Dans les paramètres du repo GitHub → **Pages** → Source : **GitHub Actions*
 ```
 src/
   components/   # UI (Layout, TubeGrid, onglets procédures…)
-  data/         # Tubes, annuaire, protocoles
+  data/         # Tubes, protocoles, étiquettes
   hooks/        # Recherche, favoris, thème
   pages/        # HomePage
 ```
