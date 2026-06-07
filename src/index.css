@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+/* ═══════════════════════════════════════════════════════════
+   Design Tokens — Lumen style
+   Accent: Teal #0F6E56 (light) / #5DCAA5 (dark)
+   ═══════════════════════════════════════════════════════════ */
+
+@theme inline {
+    --font-sans:  'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono:  'JetBrains Mono', ui-monospace, monospace;
+
+    /* Canvas (backgrounds) */
+    --color-canvas:   var(--c-canvas);
+    --color-canvas-2: var(--c-canvas-2);
+    --color-canvas-3: var(--c-canvas-3);
+
+    /* Ink (text) */
+    --color-ink:   var(--c-ink);
+    --color-ink-2: var(--c-ink-2);
+    --color-ink-3: var(--c-ink-3);
+
+    /* Border */
+    --color-line: var(--c-line);
+
+    /* Accent */
+    --color-accent:      var(--c-accent);
+    --color-accent-soft: var(--c-accent-soft);
+    --color-accent-ink:  var(--c-accent-ink);
+
+    /* Semantic */
+    --color-red:      var(--c-red);
+    --color-red-soft: var(--c-red-soft);
+    --color-grn:      var(--c-grn);
+    --color-grn-soft: var(--c-grn-soft);
+    --color-org:      var(--c-org);
+    --color-org-soft: var(--c-org-soft);
+    --color-blu:      var(--c-blu);
+    --color-blu-soft: var(--c-blu-soft);
+}
+
+/* ── Light ──────────────────────────────────────────── */
+:root, [data-theme="light"] {
+    --c-canvas:   #FCFCFC;
+    --c-canvas-2: #F5F5F4;
+    --c-canvas-3: #EEEEEC;
+
+    --c-ink:   #1A1A1A;
+    --c-ink-2: #6B6B6B;
+    --c-ink-3: #A0A0A0;
+
+    --c-line: #E2E2E0;
+
+    --c-accent:      #0F6E56;
+    --c-accent-soft: #E1F5EE;
+    --c-accent-ink:  #04342C;
+
+    --c-red: #C62828; --c-red-soft: #FDECEA;
+    --c-grn: #2E7D32; --c-grn-soft: #E8F5E9;
+    --c-org: #E65100; --c-org-soft: #FFF3E0;
+    --c-blu: #1565C0; --c-blu-soft: #E3F2FD;
+}
+
+/* ── Dark ───────────────────────────────────────────── */
+[data-theme="dark"] {
+    --c-canvas:   #08090A;
+    --c-canvas-2: #111213;
+    --c-canvas-3: #1A1B1C;
+
+    --c-ink:   #E8E8E8;
+    --c-ink-2: #8A8A8A;
+    --c-ink-3: #555555;
+
+    --c-line: #2A2A2A;
+
+    --c-accent:      #5DCAA5;
+    --c-accent-soft: #122A22;
+    --c-accent-ink:  #A8EBCF;
+
+    --c-red: #EF9A9A; --c-red-soft: #2C1515;
+    --c-grn: #81C784; --c-grn-soft: #152015;
+    --c-org: #FFB74D; --c-org-soft: #2C1E0A;
+    --c-blu: #64B5F6; --c-blu-soft: #0D1A2C;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Base
+   ═══════════════════════════════════════════════════════════ */
+@layer base {
+    * { @apply border-line; }
+    body { @apply bg-canvas text-ink; }
+    html {
+        @apply font-sans antialiased;
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Utilities
+   ═══════════════════════════════════════════════════════════ */
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@utility fade-up {
+    animation: fade-up 150ms ease-out both;
+}
+
+@utility state-hover {
+    position: relative;
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: currentColor;
+        opacity: 0;
+        transition: opacity 120ms ease;
+        pointer-events: none;
+    }
+    &:hover::after { opacity: 0.06; }
+    &:active::after { opacity: 0.10; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Ticker banner
+   ═══════════════════════════════════════════════════════════ */
+.ticker-track {
+    animation: ticker-scroll 60s linear infinite;
+}
+.ticker-track:hover {
+    animation-play-state: paused;
+}
+@keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}

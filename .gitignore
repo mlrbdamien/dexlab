@@ -1,0 +1,26 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules
+
+# Build
+dist
+
+# Editor
+.DS_Store
+.idea
+.vscode
+*.local
+
+# Env
+.env
+.env.*
+
+# Tooling
+.claude
+
+# Reference assets (not part of app)
+_reference
