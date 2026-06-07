@@ -1,5 +1,5 @@
 // ============================================================
-// Types métier — Dexlabratoire  Sion
+// Types métier — Dexlab
 // Source de vérité : _reference/index.html (PR-6387 v4 + FP-7679 v3)
 // ============================================================
 

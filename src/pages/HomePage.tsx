@@ -58,7 +58,6 @@ export function HomePage() {
         <div className="fade-up">
           <div className="hidden md:block mb-5">
             <h1 className="text-lg font-bold text-ink">Gestion des échantillons</h1>
-            <p className="text-[0.72rem] font-mono text-ink-3 mt-0.5">Dexlab  — Sion</p>
           </div>
 
           {hasQuery && (
