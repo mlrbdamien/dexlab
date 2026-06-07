@@ -11,7 +11,7 @@ export function TabEtiquettes() {
       <Cards items={etiquettesFormat.map(e => ({ title: `${e.icone} ${e.titre}`, body: e.description }))} />
 
       <SectionHead>Ré-impression (écran 105 DGLab)</SectionHead>
-      <div className="overflow-x-auto rounded-[9px] border-[0.5px] border-line bg-canvas">
+      <div className="overflow-x-auto rounded-xl border-[0.5px] border-line bg-canvas">
         <table className="w-full text-[0.78rem]">
           <thead>
             <tr className="border-b border-line bg-canvas-2">
@@ -43,7 +43,7 @@ function Cards({ items }: { items: { title: string; body: string }[] }) {
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]">
       {items.map(item => (
-        <div key={item.title} className="rounded-[9px] border-[0.5px] border-line bg-canvas p-3.5">
+        <div key={item.title} className="rounded-xl border-[0.5px] border-line bg-canvas p-3.5">
           <h4 className="text-[0.82rem] font-semibold text-ink">{item.title}</h4>
           <p className="mt-1 text-[0.75rem] leading-relaxed text-ink-2">{item.body}</p>
         </div>

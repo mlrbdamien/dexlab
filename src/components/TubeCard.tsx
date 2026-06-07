@@ -25,7 +25,7 @@ export function TubeCard({ tube, isFav, onToggleFav, onClick }: Props) {
     <div className="group relative h-full">
       <button
         onClick={onClick}
-        className="flex h-full w-full flex-col rounded-[9px] border-[0.5px] border-line bg-canvas p-3 text-left transition hover:border-ink-3/40 active:scale-[0.98]"
+        className="flex h-full w-full flex-col rounded-xl border border-line bg-canvas p-4 text-left transition-all duration-150 hover:border-ink-3/30 hover:shadow-sm active:scale-[0.98]"
       >
         {/* Top: pastille + badge centrifugation (l'étoile favori est superposée, hors du bouton) */}
         <div className="flex items-start justify-between gap-1 mb-auto pr-9">
@@ -33,13 +33,13 @@ export function TubeCard({ tube, isFav, onToggleFav, onClick }: Props) {
             className="h-6 w-6 shrink-0 rounded-full border-[0.5px] border-black/8 dark:border-white/12"
             style={{ background: tube.couleur }}
           />
-          <span className={`rounded-[5px] px-1.5 py-[2px] text-[0.55rem] font-bold uppercase tracking-wide ${centriStyle[tube.centrifugation]}`}>
+          <span className={`rounded-md px-1.5 py-[2px] text-[0.55rem] font-bold uppercase tracking-wide ${centriStyle[tube.centrifugation]}`}>
             {centriLabel[tube.centrifugation]}
           </span>
         </div>
 
         {/* Label */}
-        <div className="mt-2 min-w-0">
+        <div className="mt-3 min-w-0">
           <div className="text-[0.82rem] font-semibold leading-snug text-ink truncate">{tube.nom}</div>
           {tube.sousTitre && <div className="mt-0.5 text-[0.72rem] text-ink-2 truncate">{tube.sousTitre}</div>}
           <div className="mt-1 font-mono text-[0.62rem] text-ink-3">étiq. {tube.etiquette}</div>
@@ -52,7 +52,7 @@ export function TubeCard({ tube, isFav, onToggleFav, onClick }: Props) {
         onClick={onToggleFav}
         aria-label={isFav ? `Retirer ${tube.nom} des favoris` : `Ajouter ${tube.nom} aux favoris`}
         aria-pressed={isFav}
-        className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded transition ${
+        className={`absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150 ${
           isFav ? 'text-amber-500' : 'text-ink-3/40 group-hover:text-ink-3'
         }`}
       >

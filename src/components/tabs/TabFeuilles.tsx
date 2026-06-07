@@ -2,7 +2,7 @@ import { reglesTransmission } from '@/data/protocoles'
 
 export function TabFeuilles() {
   return (
-    <div className="overflow-x-auto rounded-[9px] border-[0.5px] border-line bg-canvas">
+    <div className="overflow-x-auto rounded-xl border-[0.5px] border-line bg-canvas">
       <table className="w-full text-[0.78rem]">
         <thead>
           <tr className="border-b border-line bg-canvas-2">

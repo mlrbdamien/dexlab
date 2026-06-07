@@ -119,7 +119,7 @@ export function HomePage() {
         <div className="fade-up space-y-1 mt-2">
           {procedures.map(p => (
             <button key={p.id} onClick={() => setSection(p.id)}
-              className="state-hover flex w-full items-center gap-2.5 rounded-[9px] border-[0.5px] border-line bg-canvas px-3.5 py-3 text-left"
+              className="state-hover flex w-full items-center gap-2.5 rounded-xl border-[0.5px] border-line bg-canvas px-3.5 py-3 text-left"
             >
               <p.icon className="h-4 w-4 text-accent shrink-0" strokeWidth={SW} />
               <span className="flex-1 text-[0.82rem] font-medium text-ink">{p.label}</span>
@@ -174,7 +174,7 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack }: { tube: Tube; isFav: bo
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-5">
-        <div className="rounded-[9px] border-[0.5px] border-line bg-canvas p-4">
+        <div className="rounded-xl border-[0.5px] border-line bg-canvas p-4">
           <div className="flex items-center gap-2 mb-2">
             <Tag className="h-4 w-4 text-ink-3" strokeWidth={SW} />
             <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Étiquette</span>
@@ -184,18 +184,18 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack }: { tube: Tube; isFav: bo
           {tube.codeSansAnalyse && <p className="font-mono text-[0.68rem] text-ink-3">sans analyse · {tube.codeSansAnalyse}</p>}
         </div>
 
-        <div className="rounded-[9px] border-[0.5px] border-line bg-canvas p-4">
+        <div className="rounded-xl border-[0.5px] border-line bg-canvas p-4">
           <div className="flex items-center gap-2 mb-2">
             <Activity className="h-4 w-4 text-ink-3" strokeWidth={SW} />
             <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Centrifuger</span>
           </div>
-          <span className={`inline-block rounded-[5px] px-2.5 py-1 text-[0.85rem] font-bold ${centriColor[tube.centrifugation]}`}>
+          <span className={`inline-block rounded-md px-2.5 py-1 text-[0.85rem] font-bold ${centriColor[tube.centrifugation]}`}>
             {centriLabel[tube.centrifugation]}
           </span>
           <p className="mt-2 text-[0.72rem] text-ink-2 leading-relaxed">{tube.centrifugationDetail}</p>
         </div>
 
-        <div className="rounded-[9px] border-[0.5px] border-line bg-canvas p-4 sm:col-span-1">
+        <div className="rounded-xl border-[0.5px] border-line bg-canvas p-4 sm:col-span-1">
           <div className="flex items-center gap-2 mb-2">
             <ArrowRightCircle className="h-4 w-4 text-ink-3" strokeWidth={SW} />
             <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Destinations</span>
@@ -256,7 +256,7 @@ function FicheAccordion({ title, badge, isOpen, onToggle, children }: { title: s
         <ChevronDown className={`h-3.5 w-3.5 text-ink-3 transition-transform duration-150 ${isOpen ? '' : '-rotate-90'}`} strokeWidth={SW} />
         <span className="text-[0.82rem] font-medium text-ink flex-1">{title}</span>
         {badge !== undefined && badge > 0 && (
-          <span className="rounded-[5px] bg-org-soft text-org px-1.5 py-0.5 text-[0.58rem] font-bold">{badge}</span>
+          <span className="rounded-md bg-org-soft text-org px-1.5 py-0.5 text-[0.58rem] font-bold">{badge}</span>
         )}
       </button>
       {isOpen && <div className="pb-4 pl-6">{children}</div>}

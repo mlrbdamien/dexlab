@@ -12,7 +12,7 @@ export function Accordion({ title, children, defaultOpen = false, variant = 'def
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className={`overflow-hidden rounded-[9px] border-[0.5px] bg-canvas ${variant === 'danger' ? 'border-red/30' : 'border-line'}`}>
+    <div className={`overflow-hidden rounded-xl border-[0.5px] bg-canvas ${variant === 'danger' ? 'border-red/30' : 'border-line'}`}>
       <button
         onClick={() => setOpen(o => !o)}
         className={`state-hover flex w-full items-center justify-between px-3.5 py-3 ${variant === 'danger' ? 'text-red' : 'text-ink'}`}

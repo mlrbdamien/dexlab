@@ -58,7 +58,7 @@
 
     --c-red: #C62828; --c-red-soft: #FDECEA;
     --c-grn: #2E7D32; --c-grn-soft: #E8F5E9;
-    --c-org: #C44800; --c-org-soft: #FFF3E0;
+    --c-org: #B84400; --c-org-soft: #FFF3E0;
     --c-blu: #1565C0; --c-blu-soft: #E3F2FD;
 }
 
@@ -105,6 +105,16 @@
 }
 @utility fade-up {
     animation: fade-up 150ms ease-out both;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes pop-in {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @utility state-hover {
