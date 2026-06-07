@@ -47,8 +47,8 @@
     --c-canvas-3: #EEEEEC;
 
     --c-ink:   #1A1A1A;
-    --c-ink-2: #6B6B6B;
-    --c-ink-3: #A0A0A0;
+    --c-ink-2: #595959;
+    --c-ink-3: #6A6A6A;
 
     --c-line: #E2E2E0;
 
@@ -58,7 +58,7 @@
 
     --c-red: #C62828; --c-red-soft: #FDECEA;
     --c-grn: #2E7D32; --c-grn-soft: #E8F5E9;
-    --c-org: #E65100; --c-org-soft: #FFF3E0;
+    --c-org: #C44800; --c-org-soft: #FFF3E0;
     --c-blu: #1565C0; --c-blu-soft: #E3F2FD;
 }
 
@@ -69,8 +69,8 @@
     --c-canvas-3: #1A1B1C;
 
     --c-ink:   #E8E8E8;
-    --c-ink-2: #8A8A8A;
-    --c-ink-3: #555555;
+    --c-ink-2: #9A9A9A;
+    --c-ink-3: #8A8A8A;
 
     --c-line: #2A2A2A;
 
