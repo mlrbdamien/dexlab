@@ -1,4 +1,4 @@
-import type { Materiel, DocItem } from '@/lib/types'
+import type { Materiel, DocItem, DocType } from '@/lib/types'
 
 // --- Contexte de mise en page (Outlet) ---
 
@@ -19,4 +19,9 @@ export interface LayoutCtx {
   onNewMateriel: () => void
   onEditMateriel: (m: Materiel) => void
   onDeleteMateriel: (m: Materiel) => Promise<void>
+  documentsError: string | null
+  refetchDocuments: () => void
+  onNewDocument: (type: DocType) => void
+  onEditDocument: (d: DocItem) => void
+  onDeleteDocument: (d: DocItem) => Promise<void>
 }

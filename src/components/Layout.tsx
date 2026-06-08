@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Outlet } from 'react-router-dom'
-import { Moon, Sun, Droplets, Crosshair, BookOpen, PanelLeft, PanelLeftClose, LogOut, FileText } from 'lucide-react'
+import { Moon, Sun, Droplets, Crosshair, BookOpen, PanelLeft, PanelLeftClose, LogOut, FileText, StickyNote } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/hooks/useTheme'
 import { useSearch } from '@/hooks/useSearch'
@@ -11,10 +11,12 @@ import { TickerBanner } from '@/components/TickerBanner'
 import { Changelog } from '@/components/Changelog'
 import { CommandPalette } from '@/components/CommandPalette'
 import { MaterielForm } from '@/components/MaterielForm'
+import { DocumentForm } from '@/components/DocumentForm'
 import { createMateriel, updateMateriel, deleteMateriel } from '@/lib/materielApi'
+import { createDocument, updateDocument, deleteDocument } from '@/lib/documentApi'
 import type { LucideIcon } from 'lucide-react'
 import type { Section, LayoutCtx } from '@/lib/navigation'
-import type { Materiel, MaterielInput } from '@/lib/types'
+import type { Materiel, MaterielInput, DocItem, DocInput, DocType } from '@/lib/types'
 
 const SW = 1.75
 
@@ -22,7 +24,7 @@ export function Layout() {
   const { theme, toggle } = useTheme()
   const [section, setSection] = useState<Section>('home')
   const { materiel, loading, error: materielError, refetch } = useMateriel()
-  const { documents, loading: documentsLoading } = useDocuments()
+  const { documents, loading: documentsLoading, error: documentsError, refetch: refetchDocuments } = useDocuments()
   const procedureDocs = documents.filter(d => d.type === 'procedure')
   const { query, setQuery, filteredMateriel } = useSearch(materiel)
 
@@ -59,6 +61,26 @@ export function Layout() {
     await refetch()
   }, [refetch])
 
+  // Formulaire Document (création / édition)
+  const [docForm, setDocForm] = useState<{ open: boolean; editing: DocItem | null; type: DocType }>({ open: false, editing: null, type: 'note' })
+  const openNewDocument = useCallback((type: DocType) => setDocForm({ open: true, editing: null, type }), [])
+  const openEditDocument = useCallback((d: DocItem) => setDocForm({ open: true, editing: d, type: d.type }), [])
+  const closeDocForm = useCallback(() => setDocForm({ open: false, editing: null, type: 'note' }), [])
+  const saveDocument = useCallback(async (input: DocInput) => {
+    if (docForm.editing) {
+      await updateDocument(docForm.editing.id, input)
+    } else {
+      const nextPos = documents.length ? Math.max(...documents.map(d => d.position)) + 1 : 0
+      await createDocument(input, nextPos)
+    }
+    setDocForm({ open: false, editing: null, type: 'note' })
+    await refetchDocuments()
+  }, [docForm.editing, documents, refetchDocuments])
+  const handleDeleteDocument = useCallback(async (d: DocItem) => {
+    await deleteDocument(d.id)
+    await refetchDocuments()
+  }, [refetchDocuments])
+
   // Raccourci global ⌘K / Ctrl+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -71,14 +93,16 @@ export function Layout() {
     return () => window.removeEventListener('keydown', h)
   }, [])
 
-  const isProc = !['home', 'procedures'].includes(section) && !section.startsWith('tube:')
-  const mobileTab = isProc || section === 'procedures' ? 'procedures' : 'identify'
+  const currentDoc = documents.find(d => d.id === section)
+  const isNotesArea = section === 'notes' || currentDoc?.type === 'note' || currentDoc?.type === 'memo'
+  const isProcArea = section === 'procedures' || currentDoc?.type === 'procedure'
+  const mobileTab = isNotesArea ? 'notes' : isProcArea ? 'procedures' : 'identify'
   const go = (tab: string) => {
-    const map: Record<string, Section> = { identify: 'home', procedures: 'procedures' }
+    const map: Record<string, Section> = { identify: 'home', procedures: 'procedures', notes: 'notes' }
     setSection(map[tab] ?? 'home')
   }
 
-  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel: refetch, onNewMateriel: openNewMateriel, onEditMateriel: openEditMateriel, onDeleteMateriel: handleDeleteMateriel }
+  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel: refetch, onNewMateriel: openNewMateriel, onEditMateriel: openEditMateriel, onDeleteMateriel: handleDeleteMateriel, documentsError, refetchDocuments, onNewDocument: openNewDocument, onEditDocument: openEditDocument, onDeleteDocument: handleDeleteDocument }
 
   return (
     <div className="flex min-h-screen bg-canvas text-ink">
@@ -97,7 +121,7 @@ export function Layout() {
         </div>
 
         <nav aria-label="Navigation principale" className={`flex-1 overflow-y-auto py-2 ${collapsed ? 'px-2' : 'px-3'} space-y-1`}>
-          <SideItem icon={Crosshair} label="Identifier" collapsed={collapsed} active={section === 'home' || section.startsWith('tube:')} onClick={() => setSection('home')} />
+          <SideItem icon={Crosshair} label="Matériel" collapsed={collapsed} active={section === 'home' || section.startsWith('tube:')} onClick={() => setSection('home')} />
 
           {!collapsed && <p className="px-3 pt-5 pb-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-ink-3">Procédures</p>}
           {collapsed && <div className="mx-2 my-2 h-px bg-line" />}
@@ -105,6 +129,9 @@ export function Layout() {
           {procedureDocs.map(d => (
             <SideItem key={d.id} icon={FileText} label={d.titre} collapsed={collapsed} active={section === d.id} onClick={() => setSection(d.id)} />
           ))}
+
+          <div className="mx-2 my-2 h-px bg-line" />
+          <SideItem icon={StickyNote} label="Notes" collapsed={collapsed} active={isNotesArea} onClick={() => setSection('notes')} />
         </nav>
 
         <div className={`mt-auto shrink-0 border-t border-line py-3 ${collapsed ? 'px-2' : 'px-3'} space-y-1`}>
@@ -155,14 +182,17 @@ export function Layout() {
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex h-16">
-          <BTab icon={Crosshair} label="Identifier" active={mobileTab === 'identify'} onClick={() => go('identify')} />
+          <BTab icon={Crosshair} label="Matériel" active={mobileTab === 'identify'} onClick={() => go('identify')} />
           <BTab icon={BookOpen} label="Procédures" active={mobileTab === 'procedures'} onClick={() => go('procedures')} />
+          <BTab icon={StickyNote} label="Notes" active={mobileTab === 'notes'} onClick={() => go('notes')} />
         </div>
       </nav>
 
-      {paletteOpen && <CommandPalette materiel={materiel} documents={documents} onClose={closePalette} onNavigate={setSection} onToggleTheme={toggle} onNewMateriel={openNewMateriel} theme={theme} />}
+      {paletteOpen && <CommandPalette materiel={materiel} documents={documents} onClose={closePalette} onNavigate={setSection} onToggleTheme={toggle} onNewMateriel={openNewMateriel} onNewDocument={openNewDocument} theme={theme} />}
 
       {form.open && <MaterielForm initial={form.editing} onSave={saveMateriel} onClose={closeForm} />}
+
+      {docForm.open && <DocumentForm initial={docForm.editing} defaultType={docForm.type} onSave={saveDocument} onClose={closeDocForm} />}
     </div>
   )
 }

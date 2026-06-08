@@ -1,16 +1,16 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { TubeGrid } from '@/components/TubeGrid'
 import { Markdown } from '@/components/Markdown'
 import type { LayoutCtx } from '@/lib/navigation'
-import type { Materiel, CentrifugationStatus } from '@/lib/types'
+import type { Materiel, CentrifugationStatus, DocItem } from '@/lib/types'
 
 const SW = 1.75
 
 export function HomePage() {
-  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel } = useOutletContext<LayoutCtx>()
+  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel, documentsError, refetchDocuments, onNewDocument, onEditDocument, onDeleteDocument } = useOutletContext<LayoutCtx>()
   const { isFav, toggle: toggleFav } = useFavorites()
 
   useEffect(() => {
@@ -24,8 +24,13 @@ export function HomePage() {
   const selectedTube = tubeId ? materiel.find(m => m.id === tubeId) ?? null : null
 
   const procedureDocs = documents.filter(d => d.type === 'procedure')
-  const isProc = !['home', 'procedures'].includes(section) && !isTube
-  const procDoc = isProc ? documents.find(d => d.id === section) ?? null : null
+  const noteDocs = useMemo(
+    () => documents.filter(d => d.type !== 'procedure').slice().sort((a, b) => Number(b.epingle) - Number(a.epingle) || a.position - b.position),
+    [documents],
+  )
+  const isDoc = !['home', 'procedures', 'notes'].includes(section) && !isTube
+  const currentDoc = isDoc ? documents.find(d => d.id === section) ?? null : null
+  const docBackTo = currentDoc?.type === 'procedure' ? 'procedures' : 'notes'
 
   const hasQuery = query.trim().length > 0
   const favMateriel = useMemo(() => materiel.filter(m => isFav(m.id)), [materiel, isFav])
@@ -36,6 +41,15 @@ export function HomePage() {
     try {
       await onDeleteMateriel(m)
       setSection('home')
+    } catch {
+      window.alert('Échec de la suppression. Vérifie ta connexion et réessaie.')
+    }
+  }
+  const handleDeleteDoc = async (d: DocItem) => {
+    if (!window.confirm(`Supprimer « ${d.titre} » ? Action irréversible.`)) return
+    try {
+      await onDeleteDocument(d)
+      setSection(d.type === 'procedure' ? 'procedures' : 'notes')
     } catch {
       window.alert('Échec de la suppression. Vérifie ta connexion et réessaie.')
     }
@@ -101,39 +115,95 @@ export function HomePage() {
       )}
 
       {section === 'procedures' && (
-        <div className="fade-up space-y-1.5 mt-2">
-          {documentsLoading && procedureDocs.length === 0 ? (
-            <p className="py-10 text-center text-[0.82rem] text-ink-3">Chargement…</p>
-          ) : procedureDocs.length === 0 ? (
-            <p className="py-10 text-center text-[0.82rem] text-ink-3">Aucune procédure.</p>
-          ) : procedureDocs.map(d => (
-            <button key={d.id} onClick={() => setSection(d.id)}
-              className="state-hover flex w-full items-center gap-2.5 rounded-xl border border-line bg-canvas px-4 py-3.5 text-left transition-colors duration-150"
-            >
-              <FileText className="h-4 w-4 shrink-0 text-accent" strokeWidth={SW} />
-              <span className="flex-1 text-[0.82rem] font-medium text-ink">{d.titre}</span>
-              <ChevronRight className="h-3.5 w-3.5 text-ink-3/50" strokeWidth={SW} />
+        <div className="fade-up mt-2">
+          <div className="mb-3 flex justify-end">
+            <button onClick={() => onNewDocument('procedure')} className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[0.78rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
+              <Plus aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Nouvelle procédure
             </button>
-          ))}
+          </div>
+          <div className="space-y-1.5">
+            {documentsLoading && procedureDocs.length === 0 ? (
+              <p className="py-10 text-center text-[0.82rem] text-ink-3">Chargement…</p>
+            ) : procedureDocs.length === 0 ? (
+              <p className="py-10 text-center text-[0.82rem] text-ink-3">Aucune procédure.</p>
+            ) : procedureDocs.map(d => (
+              <button key={d.id} onClick={() => setSection(d.id)}
+                className="state-hover flex w-full items-center gap-2.5 rounded-xl border border-line bg-canvas px-4 py-3.5 text-left transition-colors duration-150"
+              >
+                <FileText className="h-4 w-4 shrink-0 text-accent" strokeWidth={SW} />
+                <span className="flex-1 text-[0.82rem] font-medium text-ink">{d.titre}</span>
+                <ChevronRight className="h-3.5 w-3.5 text-ink-3/50" strokeWidth={SW} />
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      {isProc && procDoc && (
+      {isDoc && currentDoc && (
         <div className="fade-up">
-          <button onClick={() => setSection('procedures')} className="md:hidden mb-3 mt-1 flex items-center gap-1 text-[0.78rem] font-medium text-accent">
-            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
-          </button>
-          <h2 className="mb-4 text-base font-bold text-ink md:mt-2">{procDoc.titre}</h2>
-          <Markdown>{procDoc.contenu}</Markdown>
+          <div className="mb-4 flex items-center gap-2">
+            <button onClick={() => setSection(docBackTo)} className="flex items-center gap-1.5 text-[0.78rem] font-medium text-accent">
+              <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
+            </button>
+            <div className="ml-auto flex items-center gap-1">
+              <button onClick={() => onEditDocument(currentDoc)} aria-label="Éditer" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-canvas-2 hover:text-ink">
+                <Pencil aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />
+              </button>
+              <button onClick={() => handleDeleteDoc(currentDoc)} aria-label="Supprimer" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-red-soft hover:text-red">
+                <Trash2 aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />
+              </button>
+            </div>
+          </div>
+          <h2 className="mb-4 text-base font-bold text-ink">{currentDoc.titre}</h2>
+          {currentDoc.contenu.trim()
+            ? <Markdown>{currentDoc.contenu}</Markdown>
+            : <p className="text-[0.82rem] text-ink-3">Ce document est vide.</p>}
         </div>
       )}
 
-      {isProc && !procDoc && (
+      {isDoc && !currentDoc && (
         <div className="fade-up">
-          <button onClick={() => setSection('procedures')} className="md:hidden mb-3 mt-1 flex items-center gap-1 text-[0.78rem] font-medium text-accent">
+          <button onClick={() => setSection('home')} className="mb-3 mt-1 flex items-center gap-1 text-[0.78rem] font-medium text-accent">
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
           </button>
-          <p className="py-10 text-center text-[0.82rem] text-ink-3">{documentsLoading ? 'Chargement…' : 'Procédure introuvable.'}</p>
+          <p className="py-10 text-center text-[0.82rem] text-ink-3">{documentsLoading ? 'Chargement…' : 'Document introuvable.'}</p>
+        </div>
+      )}
+
+      {section === 'notes' && (
+        <div className="fade-up">
+          <div className="mb-6 flex items-center gap-3">
+            <h1 className="hidden text-lg font-bold text-ink md:block">Notes &amp; mémos</h1>
+            <button onClick={() => onNewDocument('note')} className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[0.78rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
+              <Plus aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Nouvelle note
+            </button>
+          </div>
+          {documentsError ? (
+            <div className="rounded-xl border border-red/30 bg-red-soft p-4 text-[0.82rem] text-red">
+              Impossible de charger les notes : {documentsError}.
+              <button onClick={refetchDocuments} className="ml-2 font-medium underline">Réessayer</button>
+            </div>
+          ) : documentsLoading && noteDocs.length === 0 ? (
+            <p className="py-12 text-center text-[0.82rem] text-ink-3">Chargement…</p>
+          ) : noteDocs.length === 0 ? (
+            <p className="py-12 text-center text-[0.82rem] text-ink-3">Aucune note pour l'instant.</p>
+          ) : (
+            <div className="space-y-2">
+              {noteDocs.map(d => (
+                <button key={d.id} onClick={() => setSection(d.id)} className="state-hover flex w-full items-start gap-2.5 rounded-xl border border-line bg-canvas px-4 py-3 text-left transition-colors duration-150">
+                  <StickyNote aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-accent" strokeWidth={SW} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-[0.85rem] font-medium text-ink">{d.titre}</span>
+                      {d.epingle && <Pin aria-label="Épinglé" className="h-3 w-3 shrink-0 text-amber-500" strokeWidth={SW} />}
+                    </div>
+                    {d.tags.length > 0 && <div className="mt-0.5 truncate text-[0.68rem] text-ink-3">{d.tags.join(' · ')}</div>}
+                  </div>
+                  <span className="shrink-0 text-[0.58rem] font-medium uppercase tracking-wide text-ink-3">{d.type === 'memo' ? 'Mémo' : 'Note'}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </>

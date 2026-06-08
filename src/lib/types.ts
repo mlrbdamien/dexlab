@@ -94,6 +94,9 @@ export interface DocItem {
   position: number;
 }
 
+// Champs éditables (création / mise à jour) — sans id ni position.
+export type DocInput = Omit<DocItem, 'id' | 'position'>;
+
 // --- Statifs de tri ---
 
 export interface Statif {

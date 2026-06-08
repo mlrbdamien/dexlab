@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { DocItem, DocType } from '@/lib/types'
 
@@ -28,22 +28,28 @@ export function useDocuments() {
   const [documents, setDocuments] = useState<DocItem[]>([])
   const [loading, setLoading] = useState(Boolean(supabase))
   const [error, setError] = useState<string | null>(null)
+  const seqRef = useRef(0)
 
-  useEffect(() => {
-    if (!supabase) return
-    let active = true
-    supabase
+  const load = useCallback(() => {
+    if (!supabase) return Promise.resolve()
+    const seq = ++seqRef.current
+    return supabase
       .from('documents')
       .select('*')
       .order('position', { ascending: true })
       .then(({ data, error: err }) => {
-        if (!active) return
+        if (seq !== seqRef.current) return
         if (err) setError(err.message)
-        else setDocuments((data as DocRow[] ?? []).map(rowToDoc))
+        else { setDocuments((data as DocRow[] ?? []).map(rowToDoc)); setError(null) }
         setLoading(false)
       })
-    return () => { active = false }
   }, [])
 
-  return { documents, loading, error }
+  useEffect(() => {
+    void load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- invalidation intentionnelle du jeton au démontage
+    return () => { seqRef.current++ }
+  }, [load])
+
+  return { documents, loading, error, refetch: load }
 }
