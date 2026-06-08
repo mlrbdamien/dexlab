@@ -24,6 +24,7 @@ export interface LayoutCtx {
   onNewDocument: (type: DocType) => void
   onEditDocument: (d: DocItem) => void
   onDeleteDocument: (d: DocItem) => Promise<void>
+  onTogglePinDocument: (d: DocItem) => Promise<void>
   links: MaterielDocumentLink[]
   onEditMaterielLinks: (m: Materiel) => void
   onEditDocLinks: (d: DocItem) => void

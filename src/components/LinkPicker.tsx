@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Check } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 const SW = 1.75
 const inputCls = 'h-9 w-full rounded-lg border border-line bg-canvas px-2.5 text-[0.82rem] text-ink outline-none transition duration-150 focus:border-accent focus:ring-2 focus:ring-accent/20'
@@ -22,6 +23,8 @@ export function LinkPicker({ title, options, selected, onSave, onClose }: Props)
   const busyRef = useRef(false)
   useEffect(() => { busyRef.current = busy }, [busy])
   const filterRef = useRef<HTMLInputElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(panelRef)
 
   const requestClose = () => { if (!busyRef.current) onClose() }
 
@@ -58,7 +61,7 @@ export function LinkPicker({ title, options, selected, onSave, onClose }: Props)
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 py-[6vh]" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={requestClose} />
-      <div className="relative flex max-h-full w-full max-w-md flex-col overflow-hidden rounded-2xl border border-line bg-canvas shadow-2xl animate-[pop-in_150ms_ease-out]">
+      <div ref={panelRef} className="relative flex max-h-full w-full max-w-md flex-col overflow-hidden rounded-2xl border border-line bg-canvas shadow-2xl animate-[pop-in_150ms_ease-out]">
         <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-3.5">
           <h2 className="text-[0.92rem] font-semibold text-ink">{title}</h2>
           <button type="button" onClick={requestClose} disabled={busy} aria-label="Fermer" className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-canvas-2 hover:text-ink disabled:opacity-50">

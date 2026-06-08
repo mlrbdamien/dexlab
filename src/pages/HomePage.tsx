@@ -10,7 +10,7 @@ import type { Materiel, CentrifugationStatus, DocItem } from '@/lib/types'
 const SW = 1.75
 
 export function HomePage() {
-  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel, documentsError, refetchDocuments, onNewDocument, onEditDocument, onDeleteDocument, links, onEditMaterielLinks, onEditDocLinks } = useOutletContext<LayoutCtx>()
+  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel, documentsError, refetchDocuments, onNewDocument, onEditDocument, onDeleteDocument, onTogglePinDocument, links, onEditMaterielLinks, onEditDocLinks } = useOutletContext<LayoutCtx>()
   const { isFav, toggle: toggleFav } = useFavorites()
 
   useEffect(() => {
@@ -211,17 +211,21 @@ export function HomePage() {
           ) : (
             <div className="space-y-2">
               {noteDocs.map(d => (
-                <button key={d.id} onClick={() => setSection(d.id)} className="state-hover flex w-full items-start gap-2.5 rounded-xl border border-line bg-canvas px-4 py-3 text-left transition-colors duration-150">
-                  <StickyNote aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-accent" strokeWidth={SW} />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="truncate text-[0.85rem] font-medium text-ink">{d.titre}</span>
-                      {d.epingle && <Pin aria-label="Épinglé" className="h-3 w-3 shrink-0 text-amber-500" strokeWidth={SW} />}
+                <div key={d.id} className="group relative">
+                  <button onClick={() => setSection(d.id)} className="state-hover flex w-full items-start gap-2.5 rounded-xl border border-line bg-canvas px-4 py-3 pr-11 text-left transition-colors duration-150">
+                    <StickyNote aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-accent" strokeWidth={SW} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[0.85rem] font-medium text-ink">{d.titre}</div>
+                      <div className="mt-0.5 flex items-center gap-1.5 text-[0.68rem] text-ink-3">
+                        <span className="uppercase tracking-wide">{d.type === 'memo' ? 'Mémo' : 'Note'}</span>
+                        {d.tags.length > 0 && <span className="truncate">· {d.tags.join(' · ')}</span>}
+                      </div>
                     </div>
-                    {d.tags.length > 0 && <div className="mt-0.5 truncate text-[0.68rem] text-ink-3">{d.tags.join(' · ')}</div>}
-                  </div>
-                  <span className="shrink-0 text-[0.58rem] font-medium uppercase tracking-wide text-ink-3">{d.type === 'memo' ? 'Mémo' : 'Note'}</span>
-                </button>
+                  </button>
+                  <button onClick={() => onTogglePinDocument(d)} aria-label={d.epingle ? 'Désépingler' : 'Épingler'} aria-pressed={d.epingle} className={`absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150 ${d.epingle ? 'text-amber-500' : 'text-ink-3/50 hover:text-ink-3'}`}>
+                    <Pin aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} fill={d.epingle ? 'currentColor' : 'none'} />
+                  </button>
+                </div>
               ))}
             </div>
           )}

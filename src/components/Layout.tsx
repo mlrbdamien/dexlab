@@ -84,6 +84,10 @@ export function Layout() {
     await deleteDocument(d.id)
     await refetchDocuments()
   }, [refetchDocuments])
+  const handleTogglePin = useCallback(async (d: DocItem) => {
+    await updateDocument(d.id, { type: d.type, titre: d.titre, contenu: d.contenu, tags: d.tags, epingle: !d.epingle })
+    await refetchDocuments()
+  }, [refetchDocuments])
 
   // Liens croisés Matériel ↔ Document
   const [linkPicker, setLinkPicker] = useState<{ kind: 'materiel' | 'document'; id: string } | null>(null)
@@ -124,7 +128,7 @@ export function Layout() {
     setSection(map[tab] ?? 'home')
   }
 
-  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel: refetch, onNewMateriel: openNewMateriel, onEditMateriel: openEditMateriel, onDeleteMateriel: handleDeleteMateriel, documentsError, refetchDocuments, onNewDocument: openNewDocument, onEditDocument: openEditDocument, onDeleteDocument: handleDeleteDocument, links, onEditMaterielLinks: openMaterielLinks, onEditDocLinks: openDocLinks }
+  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel: refetch, onNewMateriel: openNewMateriel, onEditMateriel: openEditMateriel, onDeleteMateriel: handleDeleteMateriel, documentsError, refetchDocuments, onNewDocument: openNewDocument, onEditDocument: openEditDocument, onDeleteDocument: handleDeleteDocument, onTogglePinDocument: handleTogglePin, links, onEditMaterielLinks: openMaterielLinks, onEditDocLinks: openDocLinks }
 
   return (
     <div className="flex min-h-screen bg-canvas text-ink">

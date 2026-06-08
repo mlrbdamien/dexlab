@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { X, Plus, Trash2 } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Materiel, MaterielInput, CentrifugationStatus, MaterielDestination } from '@/lib/types'
 
 const SW = 1.75
@@ -44,18 +45,33 @@ export function MaterielForm({ initial, onSave, onClose }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const formRef = useRef<HTMLFormElement>(null)
   const nomRef = useRef<HTMLInputElement>(null)
   const busyRef = useRef(false)
   useEffect(() => { busyRef.current = busy }, [busy])
+  const baseline = useMemo(() => (initial ? fromMateriel(initial) : emptyInput()), [initial])
+  const dirty = JSON.stringify(form) !== JSON.stringify(baseline)
+  const dirtyRef = useRef(false)
+  useEffect(() => { dirtyRef.current = dirty }, [dirty])
+  useFocusTrap(formRef)
 
-  const requestClose = () => { if (!busyRef.current) onClose() }
+  const requestClose = () => {
+    if (busyRef.current) return
+    if (dirtyRef.current && !window.confirm('Abandonner les modifications non enregistrées ?')) return
+    onClose()
+  }
 
   useEffect(() => {
     const trigger = document.activeElement as HTMLElement | null
     const t = setTimeout(() => nomRef.current?.focus(), 0)
     // Capture : neutralise le raccourci Échap de la page pendant que la modale est ouverte.
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopImmediatePropagation(); if (!busyRef.current) onClose() }
+      if (e.key === 'Escape') {
+        e.stopImmediatePropagation()
+        if (busyRef.current) return
+        if (dirtyRef.current && !window.confirm('Abandonner les modifications non enregistrées ?')) return
+        onClose()
+      }
     }
     window.addEventListener('keydown', h, true)
     const prevOverflow = document.body.style.overflow
@@ -89,7 +105,7 @@ export function MaterielForm({ initial, onSave, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 py-[5vh]" role="dialog" aria-modal="true" aria-label={initial ? 'Éditer le matériel' : 'Nouveau matériel'}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={requestClose} />
-      <form onSubmit={submit} className="relative flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-line bg-canvas shadow-2xl animate-[pop-in_150ms_ease-out]">
+      <form ref={formRef} onSubmit={submit} className="relative flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-line bg-canvas shadow-2xl animate-[pop-in_150ms_ease-out]">
         <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-3.5">
           <h2 className="text-[0.92rem] font-semibold text-ink">{initial ? 'Éditer le matériel' : 'Nouveau matériel'}</h2>
           <button type="button" onClick={requestClose} disabled={busy} aria-label="Fermer" className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-canvas-2 hover:text-ink disabled:opacity-50">

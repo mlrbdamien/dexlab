@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Fuse from 'fuse.js'
 import { Search, FileText, Crosshair, Sun, Moon, CornerDownLeft, TestTube, LogOut, Plus, StickyNote } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Section } from '@/lib/navigation'
 import type { Materiel, DocItem, DocType } from '@/lib/types'
 import type { LucideIcon } from 'lucide-react'
@@ -35,6 +36,8 @@ export function CommandPalette({ materiel, documents, onClose, onNavigate, onTog
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const itemsRef = useRef<(HTMLButtonElement | null)[]>([])
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(panelRef)
 
   const commands: Cmd[] = useMemo(() => {
     const go = (s: Section) => () => { onNavigate(s); onClose() }
@@ -91,7 +94,7 @@ export function CommandPalette({ materiel, documents, onClose, onNavigate, onTog
       aria-label="Palette de commandes"
     >
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fade-in_120ms_ease-out]" onClick={onClose} />
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-canvas/90 shadow-2xl backdrop-blur-2xl animate-[pop-in_150ms_ease-out]">
+      <div ref={panelRef} className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-canvas/90 shadow-2xl backdrop-blur-2xl animate-[pop-in_150ms_ease-out]">
         <div className="flex items-center gap-3 border-b border-line px-4">
           <Search aria-hidden="true" className="h-4 w-4 shrink-0 text-ink-3" strokeWidth={SW} />
           <input

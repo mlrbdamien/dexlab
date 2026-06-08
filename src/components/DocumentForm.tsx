@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { Markdown } from '@/components/Markdown'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { DocItem, DocInput, DocType } from '@/lib/types'
 
 const SW = 1.75
@@ -30,17 +31,31 @@ export function DocumentForm({ initial, defaultType = 'note', onSave, onClose }:
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const formRef = useRef<HTMLFormElement>(null)
   const titreRef = useRef<HTMLInputElement>(null)
   const busyRef = useRef(false)
   useEffect(() => { busyRef.current = busy }, [busy])
+  const dirty = titre !== (initial?.titre ?? '') || contenu !== (initial?.contenu ?? '') || epingle !== (initial?.epingle ?? false) || type !== (initial?.type ?? defaultType) || tagsRaw !== (initial?.tags ?? []).join(', ')
+  const dirtyRef = useRef(false)
+  useEffect(() => { dirtyRef.current = dirty }, [dirty])
+  useFocusTrap(formRef)
 
-  const requestClose = () => { if (!busyRef.current) onClose() }
+  const requestClose = () => {
+    if (busyRef.current) return
+    if (dirtyRef.current && !window.confirm('Abandonner les modifications non enregistrées ?')) return
+    onClose()
+  }
 
   useEffect(() => {
     const trigger = document.activeElement as HTMLElement | null
     const t = setTimeout(() => titreRef.current?.focus(), 0)
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopImmediatePropagation(); if (!busyRef.current) onClose() }
+      if (e.key === 'Escape') {
+        e.stopImmediatePropagation()
+        if (busyRef.current) return
+        if (dirtyRef.current && !window.confirm('Abandonner les modifications non enregistrées ?')) return
+        onClose()
+      }
     }
     window.addEventListener('keydown', h, true)
     const prevOverflow = document.body.style.overflow
@@ -74,7 +89,7 @@ export function DocumentForm({ initial, defaultType = 'note', onSave, onClose }:
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 py-[5vh]" role="dialog" aria-modal="true" aria-label={initial ? 'Éditer le document' : 'Nouveau document'}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={requestClose} />
-      <form onSubmit={submit} className="relative flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-line bg-canvas shadow-2xl animate-[pop-in_150ms_ease-out]">
+      <form ref={formRef} onSubmit={submit} className="relative flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-line bg-canvas shadow-2xl animate-[pop-in_150ms_ease-out]">
         <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-3.5">
           <h2 className="text-[0.92rem] font-semibold text-ink">{initial ? 'Éditer le document' : 'Nouveau document'}</h2>
           <button type="button" onClick={requestClose} disabled={busy} aria-label="Fermer" className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-canvas-2 hover:text-ink disabled:opacity-50">
