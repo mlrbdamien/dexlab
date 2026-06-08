@@ -97,7 +97,7 @@ export function HomePage() {
     if (hasQuery) return filteredMateriel.length > 0
       ? (
         <div className="mb-6">
-          <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Résultats ({filteredMateriel.length})</p>
+          <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-2">Résultats ({filteredMateriel.length})</p>
           <TubeGrid tubes={filteredMateriel} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
         </div>
       )
@@ -112,7 +112,7 @@ export function HomePage() {
           </div>
         )}
         <div className="mb-6">
-          <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Tous les échantillons</p>
+          <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-2">Tous les échantillons</p>
           <TubeGrid tubes={materiel} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
         </div>
       </>
@@ -251,7 +251,7 @@ export function HomePage() {
 
           <div className="mt-6 border-t border-line pt-4">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Matériel lié</span>
+              <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-2">Matériel lié</span>
               <button onClick={() => onEditDocLinks(currentDoc)} className="print-hide flex items-center gap-1 text-[0.72rem] font-medium text-accent">
                 <Link2 aria-hidden="true" className="h-3 w-3" strokeWidth={SW} /> Lier
               </button>
@@ -339,9 +339,9 @@ function CodeStat({ label, value }: { label: string; value: string }) {
   const detail = m ? m[2] : null
   return (
     <div className="min-w-0">
-      <div className="mb-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">{label}</div>
+      <div className="mb-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-2">{label}</div>
       <div className="font-mono text-xl font-bold leading-tight text-ink">{main || '—'}</div>
-      {detail && <div className="mt-1 font-mono text-[0.7rem] text-ink-3">{detail}</div>}
+      {detail && <div className="mt-1 font-mono text-[0.7rem] text-ink">{detail}</div>}
     </div>
   )
 }
@@ -354,7 +354,7 @@ function MetaLine({ item, profiles }: { item: Materiel | DocItem; profiles: Reco
   const byId = (modified ? item.updatedBy : item.createdBy) ?? null
   const name = byId ? profiles[byId] : null
   return (
-    <span className="text-[0.68rem] text-ink-3">
+    <span className="text-[0.68rem] text-ink-2">
       {modified ? 'Modifié' : 'Créé'}{name ? ` par ${name}` : ''} le {formatDate(when)}
     </span>
   )
@@ -376,7 +376,7 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
         <span className="h-12 w-12 shrink-0 rounded-full border-[0.5px] border-black/10 dark:border-white/15" style={{ background: tube.couleur }} />
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-bold text-ink">{tube.nom}</h1>
-          {tube.sousTitre && <p className="mt-0.5 font-mono text-[0.75rem] text-ink-3">{tube.sousTitre}</p>}
+          {tube.sousTitre && <p className="mt-0.5 font-mono text-[0.75rem] text-ink-2">{tube.sousTitre}</p>}
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
             <MetaLine item={tube} profiles={profiles} />
             <button onClick={onShowHistory} className="print-hide inline-flex items-center gap-1 text-[0.68rem] font-medium text-accent transition-colors duration-150 hover:text-accent-ink">
@@ -405,12 +405,12 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
         <div className="mb-5 flex flex-wrap gap-x-10 gap-y-4">
           <CodeStat label="Étiquette" value={tube.etiquette || '—'} />
           <div className="min-w-0">
-            <div className="mb-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Centrifuger</div>
+            <div className="mb-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-2">Centrifuger</div>
             <div className="flex items-center gap-2 text-xl font-bold leading-tight text-ink">
               <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${centriDot[tube.centrifugation] ?? centriDot.na}`} aria-hidden="true" />
               {centriLabel[tube.centrifugation] ?? tube.centrifugation}
             </div>
-            {tube.centrifugationDetail && <div className="mt-1 text-[0.7rem] leading-snug text-ink-3">{tube.centrifugationDetail}</div>}
+            {tube.centrifugationDetail && <div className="mt-1 text-[0.7rem] leading-snug text-ink">{tube.centrifugationDetail}</div>}
           </div>
           {tube.codeExces && <CodeStat label="Excès" value={tube.codeExces} />}
           {tube.codeSansAnalyse && <CodeStat label="Sans analyse" value={tube.codeSansAnalyse} />}
@@ -420,13 +420,13 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
           <div>
             <div className="mb-2 flex items-center gap-2">
               <ArrowRightCircle aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" strokeWidth={SW} />
-              <span className="text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Destinations</span>
+              <span className="text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-2">Destinations</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {tube.destinations.map((d, i) => (
                 <div key={i} className="rounded-md border border-line bg-canvas-2 px-2 py-1 text-[0.72rem]">
                   <strong className="font-semibold text-ink">{d.label}</strong>
-                  {d.detail && <span className="ml-1 text-[0.65rem] text-ink-3">· {d.detail}</span>}
+                  {d.detail && <span className="ml-1 text-[0.65rem] text-ink-2">· {d.detail}</span>}
                 </div>
               ))}
             </div>
@@ -439,19 +439,19 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
       {casCount > 0 && (
         <div className="mt-4 border-t border-line pt-4">
           <div className="mb-2.5 flex items-center gap-2">
-            <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Cas particuliers</span>
+            <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-2">Cas particuliers</span>
             <span className="rounded-md bg-org-soft px-1.5 py-0.5 text-[0.58rem] font-bold text-org">{casCount}</span>
           </div>
           {tube.alertes.length > 0 && (
             <div className="mb-2 rounded-md border-l-[3px] border-l-red bg-red-soft p-3">
               <h4 className="mb-1 text-[0.62rem] font-bold uppercase tracking-[0.06em] text-red">⚠ Attention</h4>
-              <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink-2">
+              <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink">
                 {tube.alertes.map((a, i) => <li key={i}>{a}</li>)}
               </ul>
             </div>
           )}
           {tube.casParticuliers.length > 0 && (
-            <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink-2">
+            <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink">
               {tube.casParticuliers.map((c, i) => <li key={i}>{c}</li>)}
             </ul>
           )}
@@ -460,15 +460,15 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
 
       {hasNotes && (
         <div className="mt-4 border-t border-line pt-4">
-          <div className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Notes &amp; codes</div>
+          <div className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-2">Notes &amp; codes</div>
           {tube.codeReserve && (
             <div className="mb-2 flex items-baseline gap-2">
-              <span className="text-[0.72rem] text-ink-3">Réserve</span>
+              <span className="text-[0.72rem] text-ink-2">Réserve</span>
               <code className="rounded border border-line bg-canvas-2 px-1.5 py-0.5 font-mono text-[0.72rem]">{tube.codeReserve}</code>
             </div>
           )}
           {tube.notes.length > 0 && (
-            <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink-2">
+            <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink">
               {tube.notes.map((n, i) => <li key={i}>{n}</li>)}
             </ul>
           )}
@@ -477,7 +477,7 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
 
       <div className="mt-2 border-t border-line pt-4">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Documents liés</span>
+          <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-2">Documents liés</span>
           <button onClick={onEditLinks} className="print-hide flex items-center gap-1 text-[0.72rem] font-medium text-accent">
             <Link2 aria-hidden="true" className="h-3 w-3" strokeWidth={SW} /> Lier
           </button>
