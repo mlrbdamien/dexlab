@@ -10,7 +10,6 @@ import { useLinks } from '@/hooks/useLinks'
 import { useProfiles } from '@/hooks/useProfiles'
 import { SearchBar } from '@/components/SearchBar'
 import { TickerBanner } from '@/components/TickerBanner'
-import { Changelog } from '@/components/Changelog'
 import { CommandPalette } from '@/components/CommandPalette'
 import { MaterielForm } from '@/components/MaterielForm'
 import { DocumentForm } from '@/components/DocumentForm'
@@ -205,7 +204,6 @@ export function Layout() {
 
         <main className="mx-auto w-full max-w-5xl flex-1 px-5 pt-8 pb-28 md:px-10 md:pb-14">
           <Outlet context={ctx} />
-          <Changelog />
         </main>
       </div>
 
