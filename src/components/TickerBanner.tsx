@@ -1,4 +1,17 @@
-import { checklist } from '@/data/protocoles'
+// Rappels du bandeau défilant (constante d'UI). La checklist éditable
+// existe par ailleurs en tant que mémo dans la base (section Notes).
+const checklist = [
+  'Vérifier identité tubes = feuille (y.c. micro-tubes)',
+  'Lecteur optique : nb codes = nb coches',
+  'Prescr. connectée : nb tubes = nb écran, étiquettes OK, NLab OK',
+  'Post-it actif (billet jaune) ?',
+  'Annotations → Données cliniques > Libellé',
+  'Codes manuscrits → ajouter manuellement',
+  'Code introuvable DGLab → fichier ANASPB',
+  'Visa HAUT = étiquetage · Visa BAS = enregistrement',
+  'Vérifier remplissage des tubes',
+  'Échantillon manquant → prévenir requérant, inscrire ∅',
+]
 
 export function TickerBanner() {
   const items = checklist.map(c => `✓ ${c}`)

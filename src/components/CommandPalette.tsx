@@ -103,17 +103,26 @@ export function CommandPalette({ materiel, documents, onClose, onNavigate, onTog
             onChange={e => { setQuery(e.target.value); setActive(0) }}
             placeholder="Rechercher un tube, une procédure, une action…"
             aria-label="Rechercher une commande"
+            role="combobox"
+            aria-expanded={true}
+            aria-controls="cmd-listbox"
+            aria-autocomplete="list"
+            aria-activedescendant={results[active] ? `cmd-opt-${active}` : undefined}
             className="h-12 w-full bg-transparent text-[0.9rem] text-ink outline-none placeholder:text-ink-3"
           />
         </div>
 
-        <div className="max-h-[52vh] overflow-y-auto p-2">
+        <div id="cmd-listbox" role="listbox" aria-label="Résultats" className="max-h-[52vh] overflow-y-auto p-2">
           {results.length === 0 ? (
             <p className="px-3 py-10 text-center text-[0.82rem] text-ink-3">Aucun résultat</p>
           ) : (
             results.map((c, i) => (
               <button
                 key={c.id}
+                id={`cmd-opt-${i}`}
+                role="option"
+                aria-selected={i === active}
+                tabIndex={-1}
                 ref={el => { itemsRef.current[i] = el }}
                 onClick={() => c.run()}
                 onMouseEnter={() => setActive(i)}
