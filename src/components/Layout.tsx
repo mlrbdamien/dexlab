@@ -196,13 +196,13 @@ export function Layout() {
         <TickerBanner />
 
         {/* Barre de recherche (glass, sticky) */}
-        <div className="print-hide sticky top-14 z-30 border-b border-line/60 bg-canvas/70 px-5 py-4 backdrop-blur-xl md:top-0 md:px-10">
-          <div className="mx-auto w-full max-w-5xl">
+        <div className="print-hide sticky top-14 z-30 border-b border-line/60 bg-canvas/70 px-5 py-4 backdrop-blur-xl md:top-0 md:px-8">
+          <div className="w-full max-w-xl">
             <SearchBar value={query} onChange={setQuery} onOpenPalette={openPalette} />
           </div>
         </div>
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-5 pt-8 pb-28 md:px-10 md:pb-14">
+        <main className="w-full flex-1 px-5 pt-8 pb-28 md:px-8 md:pb-10">
           <Outlet context={ctx} />
         </main>
       </div>

@@ -155,7 +155,7 @@ export function HomePage() {
 
           <section className="workspace-detail min-w-0 flex-1 overflow-y-auto pb-6">
             {selectedTube ? (
-              <div key={selectedTube.id} className="fade-up relative pl-5">
+              <div key={selectedTube.id} className="fade-up relative max-w-4xl pl-5">
                 <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[3px] rounded-full" style={{ background: selectedTube.couleur }} />
                 <TubeFiche tube={selectedTube} embedded isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} onEdit={() => onEditMateriel(selectedTube)} onDelete={() => handleDelete(selectedTube)} linkedDocs={documents.filter(d => links.some(l => l.materiel_id === selectedTube.id && l.document_id === d.id))} onEditLinks={() => onEditMaterielLinks(selectedTube)} onOpenDoc={(id) => setSection(id)} profiles={profiles} onShowHistory={() => onShowHistory('materiel', selectedTube.id, selectedTube.nom)} />
               </div>
@@ -194,7 +194,7 @@ export function HomePage() {
       ))}
 
       {section === 'procedures' && (
-        <div className="fade-up mt-2">
+        <div className="fade-up mt-2 mx-auto max-w-3xl">
           <div className="mb-3 flex justify-end">
             <button onClick={() => onNewDocument('procedure')} className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[0.78rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
               <Plus aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Nouvelle procédure
@@ -219,7 +219,7 @@ export function HomePage() {
       )}
 
       {isDoc && currentDoc && (
-        <div className="fade-up">
+        <div className="fade-up mx-auto max-w-3xl">
           <div className="print-hide mb-4 flex items-center gap-2">
             <button onClick={() => setSection(docBackTo)} className="flex items-center gap-1.5 text-[0.78rem] font-medium text-accent">
               <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
@@ -272,7 +272,7 @@ export function HomePage() {
       )}
 
       {isDoc && !currentDoc && (
-        <div className="fade-up">
+        <div className="fade-up mx-auto max-w-3xl">
           <button onClick={() => setSection('home')} className="mb-3 mt-1 flex items-center gap-1 text-[0.78rem] font-medium text-accent">
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
           </button>
@@ -281,7 +281,7 @@ export function HomePage() {
       )}
 
       {section === 'notes' && (
-        <div className="fade-up">
+        <div className="fade-up mx-auto max-w-3xl">
           <div className="mb-6 flex items-center gap-3">
             <h1 className="hidden text-lg font-bold text-ink md:block">Notes &amp; mémos</h1>
             <button onClick={() => onNewDocument('note')} className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[0.78rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
