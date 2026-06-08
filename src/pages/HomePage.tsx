@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, 
 import { useFavorites } from '@/hooks/useFavorites'
 import { TubeGrid } from '@/components/TubeGrid'
 import { Markdown } from '@/components/Markdown'
+import { MediaGallery } from '@/components/MediaGallery'
 import { formatDate } from '@/lib/format'
 import type { LayoutCtx } from '@/lib/navigation'
 import type { Materiel, CentrifugationStatus, DocItem } from '@/lib/types'
@@ -169,6 +170,8 @@ export function HomePage() {
           {currentDoc.contenu.trim()
             ? <Markdown>{currentDoc.contenu}</Markdown>
             : <p className="text-[0.82rem] text-ink-3">Ce document est vide.</p>}
+
+          <MediaGallery key={currentDoc.id} documentId={currentDoc.id} />
 
           <div className="mt-6 border-t border-line pt-4">
             <div className="mb-2 flex items-center justify-between">
@@ -347,6 +350,8 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
           </div>
         )}
       </div>
+
+      <MediaGallery key={tube.id} materielId={tube.id} />
 
       {(casCount > 0 || hasNotes) && (
         <div className="mt-2 border-t border-line">

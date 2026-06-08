@@ -76,3 +76,21 @@ export interface MaterielDocumentLink {
   materiel_id: string;
   document_id: string;
 }
+
+// --- Médias (images / pièces jointes) ---
+// Rattaché à UN matériel OU UN document (jamais les deux).
+
+export interface MediaItem {
+  id: string;
+  materielId: string | null;
+  documentId: string | null;
+  path: string;             // chemin de l'objet dans le bucket privé « media »
+  caption: string;
+  position: number;
+  createdAt?: string;
+}
+
+// MediaItem enrichi d'une URL signée (éphémère) pour l'affichage.
+export interface MediaWithUrl extends MediaItem {
+  url: string;
+}

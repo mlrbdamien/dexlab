@@ -3,6 +3,19 @@ import { ChevronDown } from 'lucide-react'
 
 const entries = [
   {
+    date: '08.06.2026 — v2.2 « Dexlab »',
+    items: [
+      'Nouveau nom : Dexlab',
+      'Backend Supabase + authentification (accès réservé, tout privé)',
+      'Gestion du contenu depuis l’interface : ajout, édition, suppression du matériel, des notes, mémos et procédures',
+      'Liens croisés entre matériel et documents',
+      'Traçabilité : historique complet des modifications (« modifié par … le … »)',
+      'Images / pièces jointes sur le matériel et les documents (compression, stockage privé)',
+      'Impression des fiches et procédures',
+      'Refonte visuelle minimaliste + palette de commandes (⌘K)',
+    ],
+  },
+  {
     date: '07.06.2026 — v2.1',
     items: [
       'Retrait de l’annuaire téléphonique interne (données non destinées à un hébergement public)',
