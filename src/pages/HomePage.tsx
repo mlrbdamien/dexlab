@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Activity, ArrowRightCircle, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History } from 'lucide-react'
+import { ArrowLeft, ChevronRight, ArrowRightCircle, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TubeGrid } from '@/components/TubeGrid'
@@ -327,12 +327,8 @@ export function HomePage() {
 const centriLabel: Record<CentrifugationStatus, string> = {
   oui: 'Oui', obligatoire: 'Obligatoire', non: 'Non', variable: 'Variable', na: 'N/A',
 }
-const centriBand: Record<CentrifugationStatus, { band: string; text: string; bar: string }> = {
-  oui:         { band: 'bg-grn-soft', text: 'text-grn', bar: 'border-grn' },
-  obligatoire: { band: 'bg-org-soft', text: 'text-org', bar: 'border-org' },
-  non:         { band: 'bg-red-soft', text: 'text-red', bar: 'border-red' },
-  variable:    { band: 'bg-canvas-2', text: 'text-ink-2', bar: 'border-ink-3' },
-  na:          { band: 'bg-canvas-2', text: 'text-ink-2', bar: 'border-ink-3' },
+const centriDot: Record<CentrifugationStatus, string> = {
+  oui: 'bg-grn', obligatoire: 'bg-org', non: 'bg-red', variable: 'bg-ink-3', na: 'bg-ink-3',
 }
 
 // Un code (étiquette / excès / sans analyse) : valeur mono proéminente
@@ -367,7 +363,6 @@ function MetaLine({ item, profiles }: { item: Materiel | DocItem; profiles: Reco
 function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedDocs, onEditLinks, onOpenDoc, profiles, onShowHistory, embedded = false }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void; onEdit: () => void; onDelete: () => void; linkedDocs: DocItem[]; onEditLinks: () => void; onOpenDoc: (id: string) => void; profiles: Record<string, string>; onShowHistory: () => void; embedded?: boolean }) {
   const casCount = tube.casParticuliers.length + tube.alertes.length
   const hasNotes = tube.notes.length > 0 || Boolean(tube.codeReserve)
-  const cb = centriBand[tube.centrifugation] ?? centriBand.na
 
   return (
     <div className="fade-up">
@@ -406,19 +401,17 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
       </div>
 
       <div className="mb-6">
-        {/* Centrifugation — bandeau coloré (héros, flashe selon le statut) */}
-        <div className={`mb-4 flex items-start gap-3 rounded-xl border-l-[3px] px-4 py-3 ${cb.bar} ${cb.band}`}>
-          <Activity aria-hidden="true" className={`mt-0.5 h-5 w-5 shrink-0 ${cb.text}`} strokeWidth={2} />
-          <div className="min-w-0">
-            <div className={`text-[0.58rem] font-bold uppercase tracking-[0.1em] opacity-80 ${cb.text}`}>Centrifuger</div>
-            <div className={`text-lg font-bold leading-tight ${cb.text}`}>{centriLabel[tube.centrifugation] ?? tube.centrifugation}</div>
-            {tube.centrifugationDetail && <p className="mt-1 text-[0.72rem] leading-snug text-ink-2">{tube.centrifugationDetail}</p>}
-          </div>
-        </div>
-
-        {/* Codes — étiquette, excès, sans analyse (importance égale) */}
+        {/* Codes & statut — étiquette, centrifuger, excès, sans analyse (même importance) */}
         <div className="mb-5 flex flex-wrap gap-x-10 gap-y-4">
           <CodeStat label="Étiquette" value={tube.etiquette || '—'} />
+          <div className="min-w-0">
+            <div className="mb-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Centrifuger</div>
+            <div className="flex items-center gap-2 text-xl font-bold leading-tight text-ink">
+              <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${centriDot[tube.centrifugation] ?? centriDot.na}`} aria-hidden="true" />
+              {centriLabel[tube.centrifugation] ?? tube.centrifugation}
+            </div>
+            {tube.centrifugationDetail && <div className="mt-1 text-[0.7rem] leading-snug text-ink-3">{tube.centrifugationDetail}</div>}
+          </div>
           {tube.codeExces && <CodeStat label="Excès" value={tube.codeExces} />}
           {tube.codeSansAnalyse && <CodeStat label="Sans analyse" value={tube.codeSansAnalyse} />}
         </div>

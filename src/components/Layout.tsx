@@ -9,7 +9,6 @@ import { useDocuments } from '@/hooks/useDocuments'
 import { useLinks } from '@/hooks/useLinks'
 import { useProfiles } from '@/hooks/useProfiles'
 import { SearchBar } from '@/components/SearchBar'
-import { TickerBanner } from '@/components/TickerBanner'
 import { CommandPalette } from '@/components/CommandPalette'
 import { MaterielForm } from '@/components/MaterielForm'
 import { DocumentForm } from '@/components/DocumentForm'
@@ -192,8 +191,6 @@ export function Layout() {
             {theme === 'dark' ? <Sun aria-hidden="true" className="h-4 w-4" strokeWidth={SW} /> : <Moon aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />}
           </button>
         </header>
-
-        <TickerBanner />
 
         {/* Barre de recherche (glass, sticky) */}
         <div className="print-hide sticky top-14 z-30 border-b border-line/60 bg-canvas/70 px-5 py-4 backdrop-blur-xl md:top-0 md:px-8">
