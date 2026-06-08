@@ -8,6 +8,7 @@ function toRow(input: DocInput) {
     contenu: input.contenu,
     tags: input.tags,
     epingle: input.epingle,
+    icon: input.icon ?? null,
   }
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, ArrowRightCircle, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History } from 'lucide-react'
+import { ArrowLeft, ChevronRight, ArrowRightCircle, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TubeGrid } from '@/components/TubeGrid'
@@ -8,6 +8,7 @@ import { MaterielList, MaterielListSkeleton, MaterielEmptyState } from '@/compon
 import { Markdown } from '@/components/Markdown'
 import { MediaGallery } from '@/components/MediaGallery'
 import { formatDate } from '@/lib/format'
+import { docIcon } from '@/lib/docIcons'
 import type { LayoutCtx } from '@/lib/navigation'
 import type { Materiel, CentrifugationStatus, DocItem } from '@/lib/types'
 
@@ -205,15 +206,18 @@ export function HomePage() {
               <p className="py-10 text-center text-[0.82rem] text-ink-3">Chargement…</p>
             ) : procedureDocs.length === 0 ? (
               <p className="py-10 text-center text-[0.82rem] text-ink-3">Aucune procédure.</p>
-            ) : procedureDocs.map(d => (
-              <button key={d.id} onClick={() => setSection(d.id)}
-                className="state-hover flex w-full items-center gap-2.5 rounded-xl border border-line bg-canvas px-4 py-3.5 text-left transition-colors duration-150"
-              >
-                <FileText className="h-4 w-4 shrink-0 text-accent" strokeWidth={SW} />
-                <span className="flex-1 text-[0.82rem] font-medium text-ink">{d.titre}</span>
-                <ChevronRight className="h-3.5 w-3.5 text-ink-3/50" strokeWidth={SW} />
-              </button>
-            ))}
+            ) : procedureDocs.map(d => {
+              const Ic = docIcon(d.icon)
+              return (
+                <button key={d.id} onClick={() => setSection(d.id)}
+                  className="state-hover flex w-full items-center gap-2.5 rounded-xl border border-line bg-canvas px-4 py-3.5 text-left transition-colors duration-150"
+                >
+                  <Ic className="h-4 w-4 shrink-0 text-accent" strokeWidth={SW} />
+                  <span className="flex-1 text-[0.82rem] font-medium text-ink">{d.titre}</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-ink-3/50" strokeWidth={SW} />
+                </button>
+              )
+            })}
           </div>
         </div>
       )}

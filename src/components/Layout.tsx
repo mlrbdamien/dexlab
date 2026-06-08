@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Outlet } from 'react-router-dom'
-import { Moon, Sun, Droplets, Crosshair, BookOpen, PanelLeft, PanelLeftClose, LogOut, FileText, StickyNote } from 'lucide-react'
+import { Moon, Sun, Droplets, Crosshair, BookOpen, PanelLeft, PanelLeftClose, LogOut, StickyNote } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/hooks/useTheme'
 import { useSearch } from '@/hooks/useSearch'
@@ -17,6 +17,7 @@ import { HistoryPanel } from '@/components/HistoryPanel'
 import { createMateriel, updateMateriel, deleteMateriel } from '@/lib/materielApi'
 import { createDocument, updateDocument, deleteDocument } from '@/lib/documentApi'
 import { setMaterielLinks, setDocumentLinks } from '@/lib/linkApi'
+import { docIcon } from '@/lib/docIcons'
 import type { LucideIcon } from 'lucide-react'
 import type { Section, LayoutCtx } from '@/lib/navigation'
 import type { Materiel, MaterielInput, DocItem, DocInput, DocType } from '@/lib/types'
@@ -86,7 +87,7 @@ export function Layout() {
     await refetchDocuments()
   }, [refetchDocuments])
   const handleTogglePin = useCallback(async (d: DocItem) => {
-    await updateDocument(d.id, { type: d.type, titre: d.titre, contenu: d.contenu, tags: d.tags, epingle: !d.epingle })
+    await updateDocument(d.id, { type: d.type, titre: d.titre, contenu: d.contenu, tags: d.tags, epingle: !d.epingle, icon: d.icon })
     await refetchDocuments()
   }, [refetchDocuments])
 
@@ -159,7 +160,7 @@ export function Layout() {
           {collapsed && <div className="mx-2 my-2 h-px bg-line" />}
 
           {procedureDocs.map(d => (
-            <SideItem key={d.id} icon={FileText} label={d.titre} collapsed={collapsed} active={section === d.id} onClick={() => setSection(d.id)} />
+            <SideItem key={d.id} icon={docIcon(d.icon)} label={d.titre} collapsed={collapsed} active={section === d.id} onClick={() => setSection(d.id)} />
           ))}
 
           <div className="mx-2 my-2 h-px bg-line" />

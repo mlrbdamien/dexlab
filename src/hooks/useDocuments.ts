@@ -9,6 +9,7 @@ interface DocRow {
   contenu: string
   tags: string[] | null
   epingle: boolean
+  icon: string | null
   position: number
   created_at: string | null
   updated_at: string | null
@@ -24,6 +25,7 @@ function rowToDoc(r: DocRow): DocItem {
     contenu: r.contenu ?? '',
     tags: r.tags ?? [],
     epingle: r.epingle,
+    icon: r.icon ?? null,
     position: r.position,
     createdAt: r.created_at ?? undefined,
     updatedAt: r.updated_at ?? undefined,

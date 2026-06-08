@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { Markdown } from '@/components/Markdown'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { DOC_ICONS, DOC_ICON_NAMES, DEFAULT_DOC_ICON } from '@/lib/docIcons'
 import type { DocItem, DocInput, DocType } from '@/lib/types'
 
 const SW = 1.75
@@ -27,6 +28,7 @@ export function DocumentForm({ initial, defaultType = 'note', onSave, onClose }:
   const [contenu, setContenu] = useState(initial?.contenu ?? '')
   const [tagsRaw, setTagsRaw] = useState((initial?.tags ?? []).join(', '))
   const [epingle, setEpingle] = useState(initial?.epingle ?? false)
+  const [icon, setIcon] = useState<string>(initial?.icon ?? DEFAULT_DOC_ICON)
   const [preview, setPreview] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +37,7 @@ export function DocumentForm({ initial, defaultType = 'note', onSave, onClose }:
   const titreRef = useRef<HTMLInputElement>(null)
   const busyRef = useRef(false)
   useEffect(() => { busyRef.current = busy }, [busy])
-  const dirty = titre !== (initial?.titre ?? '') || contenu !== (initial?.contenu ?? '') || epingle !== (initial?.epingle ?? false) || type !== (initial?.type ?? defaultType) || tagsRaw !== (initial?.tags ?? []).join(', ')
+  const dirty = titre !== (initial?.titre ?? '') || contenu !== (initial?.contenu ?? '') || epingle !== (initial?.epingle ?? false) || type !== (initial?.type ?? defaultType) || tagsRaw !== (initial?.tags ?? []).join(', ') || icon !== (initial?.icon ?? DEFAULT_DOC_ICON)
   const dirtyRef = useRef(false)
   useEffect(() => { dirtyRef.current = dirty }, [dirty])
   useFocusTrap(formRef)
@@ -77,6 +79,7 @@ export function DocumentForm({ initial, defaultType = 'note', onSave, onClose }:
       type, titre: titre.trim(), contenu,
       tags: tagsRaw.split(',').map(t => t.trim()).filter(Boolean),
       epingle,
+      icon: type === 'procedure' ? icon : null,
     }
     try {
       await onSave(input)
@@ -114,6 +117,23 @@ export function DocumentForm({ initial, defaultType = 'note', onSave, onClose }:
               <input id="doc-tags" value={tagsRaw} onChange={e => setTagsRaw(e.target.value)} className={inputCls} placeholder="ex. hémato, urgent" />
             </div>
           </div>
+
+          {type === 'procedure' && (
+            <div>
+              <label className={labelCls}>Icône</label>
+              <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
+                {DOC_ICON_NAMES.map(name => {
+                  const Ic = DOC_ICONS[name]
+                  const on = icon === name
+                  return (
+                    <button type="button" key={name} onClick={() => setIcon(name)} aria-label={name} aria-pressed={on} className={`flex h-9 items-center justify-center rounded-lg border transition-colors duration-150 ${on ? 'border-accent bg-accent-soft text-accent' : 'border-line text-ink-2 hover:bg-canvas-2 hover:text-ink'}`}>
+                      <Ic aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           <label className="flex w-fit items-center gap-2 text-[0.78rem] text-ink-2">
             <input type="checkbox" checked={epingle} onChange={e => setEpingle(e.target.checked)} className="h-4 w-4 accent-[var(--c-accent)]" />

@@ -57,6 +57,7 @@ export interface DocItem {
   contenu: string;          // markdown
   tags: string[];
   epingle: boolean;
+  icon?: string | null;     // nom d'icône lucide (procédures)
   position: number;
   // Traçabilité (renseignés par la base ; jamais envoyés en écriture)
   createdAt?: string;
