@@ -13,6 +13,14 @@ export interface MediaParent {
   documentId?: string
 }
 
+const IMAGE_EXTS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp', 'svg', 'avif'])
+
+// Vrai si le chemin (extension) correspond à une image affichable en vignette.
+export function isImagePath(path: string): boolean {
+  const ext = path.split('.').pop()?.toLowerCase() ?? ''
+  return IMAGE_EXTS.has(ext)
+}
+
 // ----------------------------------------------------------------
 // Compression côté client : redimensionne (max 1600 px) et ré-encode
 // en JPEG ~0.82. Réduit fortement le poids stocké. En cas d'échec
@@ -93,14 +101,18 @@ export async function uploadMedia(file: File, parent: MediaParent, position: num
   const id = parent.materielId ?? parent.documentId
   if (!id) throw new Error('Parent manquant')
   const folder = parent.materielId ? `materiel/${parent.materielId}` : `documents/${parent.documentId}`
-  const blob = await compressImage(file)
+  const isImage = file.type.startsWith('image/')
 
-  // Type/extension réels : la compression produit du JPEG, mais en cas de
-  // repli (HEIC iPhone non décodable, etc.) on conserve les octets d'origine
-  // et il faut alors un Content-Type et une extension cohérents.
-  const contentType = blob.type || file.type || 'application/octet-stream'
-  const subtype = contentType.split('/')[1] || ''
-  const ext = (contentType === 'image/jpeg' ? 'jpg' : (subtype || file.name.split('.').pop() || 'bin')).toLowerCase()
+  // Images : compressées (JPEG, ou octets d'origine si non décodables).
+  // Autres (PDF, Word, Excel…) : envoyées telles quelles, type/extension réels.
+  let blob: Blob = file
+  let contentType = file.type || 'application/octet-stream'
+  let ext = (file.name.split('.').pop() || 'bin').toLowerCase()
+  if (isImage) {
+    blob = await compressImage(file)
+    contentType = blob.type || file.type || 'application/octet-stream'
+    ext = contentType === 'image/jpeg' ? 'jpg' : (contentType.split('/')[1] || ext).toLowerCase()
+  }
   const path = `${folder}/${crypto.randomUUID()}.${ext}`
 
   const { error: upErr } = await sb.storage.from(BUCKET).upload(path, blob, {
@@ -113,7 +125,7 @@ export async function uploadMedia(file: File, parent: MediaParent, position: num
     materiel_id: parent.materielId ?? null,
     document_id: parent.documentId ?? null,
     path,
-    caption: '',
+    caption: isImage ? '' : file.name,   // non-images : nom du fichier d'origine
     position,
   })
   if (rowErr) {
