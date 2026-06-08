@@ -297,8 +297,12 @@ export function HomePage() {
 const centriLabel: Record<CentrifugationStatus, string> = {
   oui: 'Oui', obligatoire: 'Obligatoire', non: 'Non', variable: 'Variable', na: 'N/A',
 }
-const centriDot: Record<CentrifugationStatus, string> = {
-  oui: 'bg-grn', obligatoire: 'bg-org', non: 'bg-red', variable: 'bg-ink-3', na: 'bg-ink-3',
+const centriBand: Record<CentrifugationStatus, { band: string; text: string; bar: string }> = {
+  oui:         { band: 'bg-grn-soft', text: 'text-grn', bar: 'border-grn' },
+  obligatoire: { band: 'bg-org-soft', text: 'text-org', bar: 'border-org' },
+  non:         { band: 'bg-red-soft', text: 'text-red', bar: 'border-red' },
+  variable:    { band: 'bg-canvas-2', text: 'text-ink-2', bar: 'border-ink-3' },
+  na:          { band: 'bg-canvas-2', text: 'text-ink-2', bar: 'border-ink-3' },
 }
 
 // Ligne de traçabilité « Créé/Modifié par X le … »
@@ -321,6 +325,7 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
 
   const casCount = tube.casParticuliers.length + tube.alertes.length
   const hasNotes = tube.notes.length > 0 || Boolean(tube.codeReserve)
+  const cb = centriBand[tube.centrifugation] ?? centriBand.na
 
   return (
     <div className="fade-up">
@@ -356,45 +361,46 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
         </div>
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-line bg-canvas p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <Tag aria-hidden="true" className="h-4 w-4 text-ink-3" strokeWidth={SW} />
-            <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Étiquette</span>
+      <div className="mb-6">
+        {/* Centrifugation — bandeau coloré (héros, flashe selon le statut) */}
+        <div className={`mb-4 flex items-start gap-3 rounded-xl border-l-[3px] px-4 py-3 ${cb.bar} ${cb.band}`}>
+          <Activity aria-hidden="true" className={`mt-0.5 h-5 w-5 shrink-0 ${cb.text}`} strokeWidth={2} />
+          <div className="min-w-0">
+            <div className={`text-[0.58rem] font-bold uppercase tracking-[0.1em] opacity-80 ${cb.text}`}>Centrifuger</div>
+            <div className={`text-lg font-bold leading-tight ${cb.text}`}>{centriLabel[tube.centrifugation] ?? tube.centrifugation}</div>
+            {tube.centrifugationDetail && <p className="mt-1 text-[0.72rem] leading-snug text-ink-2">{tube.centrifugationDetail}</p>}
           </div>
-          <div className="font-mono text-2xl font-bold leading-none text-ink">{tube.etiquette}</div>
-          {tube.codeExces && <p className="mt-2 font-mono text-[0.68rem] text-ink-3">excès · {tube.codeExces}</p>}
-          {tube.codeSansAnalyse && <p className="font-mono text-[0.68rem] text-ink-3">sans analyse · {tube.codeSansAnalyse}</p>}
         </div>
 
-        <div className="rounded-xl border border-line bg-canvas p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <Activity aria-hidden="true" className="h-4 w-4 text-ink-3" strokeWidth={SW} />
-            <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Centrifuger</span>
+        {/* Étiquette + Destinations — grosses valeurs, sans cartes */}
+        <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2">
+          <div className="sm:pr-6">
+            <div className="mb-1.5 flex items-center gap-2">
+              <Tag aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" strokeWidth={SW} />
+              <span className="text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Étiquette</span>
+            </div>
+            <div className="font-mono text-[1.9rem] font-bold leading-none tracking-tight text-ink">{tube.etiquette || '—'}</div>
+            {tube.codeExces && <p className="mt-2 font-mono text-[0.68rem] text-ink-3">excès · {tube.codeExces}</p>}
+            {tube.codeSansAnalyse && <p className="font-mono text-[0.68rem] text-ink-3">sans analyse · {tube.codeSansAnalyse}</p>}
           </div>
-          <span className="inline-flex items-center gap-2 text-[0.95rem] font-semibold text-ink">
-            <span className={`h-2 w-2 shrink-0 rounded-full ${centriDot[tube.centrifugation] ?? centriDot.na}`} aria-hidden="true" />
-            {centriLabel[tube.centrifugation] ?? tube.centrifugation}
-          </span>
-          {tube.centrifugationDetail && <p className="mt-2 text-[0.72rem] leading-relaxed text-ink-2">{tube.centrifugationDetail}</p>}
-        </div>
 
-        {tube.destinations.length > 0 && (
-          <div className="rounded-xl border border-line bg-canvas p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <ArrowRightCircle aria-hidden="true" className="h-4 w-4 text-ink-3" strokeWidth={SW} />
-              <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Destinations</span>
+          {tube.destinations.length > 0 && (
+            <div className="sm:border-l sm:border-line sm:pl-6">
+              <div className="mb-2 flex items-center gap-2">
+                <ArrowRightCircle aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" strokeWidth={SW} />
+                <span className="text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Destinations</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {tube.destinations.map((d, i) => (
+                  <div key={i} className="rounded-md border border-line bg-canvas-2 px-2 py-1 text-[0.72rem]">
+                    <strong className="font-semibold text-ink">{d.label}</strong>
+                    {d.detail && <span className="ml-1 text-[0.65rem] text-ink-3">· {d.detail}</span>}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {tube.destinations.map((d, i) => (
-                <div key={i} className="rounded-md border border-line bg-canvas-2 px-2 py-1 text-[0.72rem]">
-                  <strong className="font-semibold text-ink">{d.label}</strong>
-                  {d.detail && <span className="ml-1 text-[0.65rem] text-ink-3">· {d.detail}</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <MediaGallery key={tube.id} materielId={tube.id} />
