@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History, Table2, LayoutGrid } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { TubeGrid } from '@/components/TubeGrid'
+import { MaterielTable, type MaterielSort, type MaterielSortKey } from '@/components/MaterielTable'
 import { Markdown } from '@/components/Markdown'
 import { MediaGallery } from '@/components/MediaGallery'
 import { formatDate } from '@/lib/format'
@@ -10,6 +11,20 @@ import type { LayoutCtx } from '@/lib/navigation'
 import type { Materiel, CentrifugationStatus, DocItem } from '@/lib/types'
 
 const SW = 1.75
+
+const centriRank: Record<CentrifugationStatus, number> = { obligatoire: 0, oui: 1, variable: 2, non: 3, na: 4 }
+
+function sortMateriel(items: Materiel[], sort: MaterielSort | null): Materiel[] {
+  if (!sort) return items
+  const dir = sort.dir === 'desc' ? -1 : 1
+  const { key } = sort
+  return [...items].sort((a, b) => {
+    const r = key === 'centrifugation'
+      ? centriRank[a.centrifugation] - centriRank[b.centrifugation]
+      : String(a[key] ?? '').localeCompare(String(b[key] ?? ''), 'fr', { sensitivity: 'base' })
+    return r * dir
+  })
+}
 
 export function HomePage() {
   const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel, documentsError, refetchDocuments, onNewDocument, onEditDocument, onDeleteDocument, onTogglePinDocument, links, onEditMaterielLinks, onEditDocLinks, profiles, onShowHistory } = useOutletContext<LayoutCtx>()
@@ -38,6 +53,13 @@ export function HomePage() {
   const hasQuery = query.trim().length > 0
   const favMateriel = useMemo(() => materiel.filter(m => isFav(m.id)), [materiel, isFav])
 
+  const [view, setView] = useState<'table' | 'cards'>(() => {
+    try { return localStorage.getItem('dexlab-mat-view') === 'cards' ? 'cards' : 'table' } catch { return 'table' }
+  })
+  const changeView = (v: 'table' | 'cards') => { setView(v); try { localStorage.setItem('dexlab-mat-view', v) } catch { /* indispo */ } }
+  const [sort, setSort] = useState<MaterielSort | null>(null)
+  const onSort = (key: MaterielSortKey) => setSort(s => (s?.key === key ? (s.dir === 'asc' ? { key, dir: 'desc' } : null) : { key, dir: 'asc' }))
+
   const selectTube = (m: Materiel) => setSection(`tube:${m.id}`)
   const handleDelete = async (m: Materiel) => {
     if (!window.confirm(`Supprimer « ${m.nom} » ? Action irréversible.`)) return
@@ -58,49 +80,73 @@ export function HomePage() {
     }
   }
 
+  const renderMatList = (items: Materiel[], mode: 'table' | 'cards') =>
+    mode === 'table'
+      ? <MaterielTable tubes={sortMateriel(items, sort)} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} sort={sort} onSort={onSort} />
+      : <TubeGrid tubes={items} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
+
+  const renderHome = (mode: 'table' | 'cards') => {
+    if (materielError) return (
+      <div className="rounded-xl border border-red/30 bg-red-soft p-4 text-[0.82rem] text-red">
+        Impossible de charger le matériel : {materielError}.
+        <button onClick={refetchMateriel} className="ml-2 font-medium underline">Réessayer</button>
+      </div>
+    )
+    if (loading && materiel.length === 0) return <p className="py-12 text-center text-[0.82rem] text-ink-3">Chargement…</p>
+    if (hasQuery) return filteredMateriel.length > 0
+      ? (
+        <div className="mb-6">
+          <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Résultats ({filteredMateriel.length})</p>
+          {renderMatList(filteredMateriel, mode)}
+        </div>
+      )
+      : <p className="py-8 text-center text-[0.82rem] text-ink-3">Aucun résultat pour « {query} »</p>
+    if (materiel.length === 0) return <p className="py-12 text-center text-[0.82rem] text-ink-3">Aucun matériel pour l'instant.</p>
+    if (mode === 'cards') return (
+      <>
+        {favMateriel.length > 0 && (
+          <div className="mb-6">
+            <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-amber-500">Favoris</p>
+            <TubeGrid tubes={favMateriel} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
+          </div>
+        )}
+        <div className="mb-6">
+          <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Tous les échantillons</p>
+          <TubeGrid tubes={materiel} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
+        </div>
+      </>
+    )
+    return <div className="mb-6">{renderMatList(materiel, 'table')}</div>
+  }
+
   return (
     <>
       {section === 'home' && (
         <div className="fade-up">
-          <div className="mb-6 flex items-center gap-3">
+          <div className="mb-5 flex items-center gap-2.5">
             <h1 className="hidden text-lg font-bold text-ink md:block">Matériel</h1>
-            <button onClick={onNewMateriel} className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[0.78rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
-              <Plus aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Nouveau
-            </button>
-          </div>
-
-          {materielError ? (
-            <div className="rounded-xl border border-red/30 bg-red-soft p-4 text-[0.82rem] text-red">
-              Impossible de charger le matériel : {materielError}.
-              <button onClick={refetchMateriel} className="ml-2 font-medium underline">Réessayer</button>
-            </div>
-          ) : loading && materiel.length === 0 ? (
-            <p className="py-12 text-center text-[0.82rem] text-ink-3">Chargement…</p>
-          ) : hasQuery ? (
-            filteredMateriel.length > 0 ? (
-              <div className="mb-6">
-                <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Résultats ({filteredMateriel.length})</p>
-                <TubeGrid tubes={filteredMateriel} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
-              </div>
-            ) : (
-              <p className="py-8 text-center text-[0.82rem] text-ink-3">Aucun résultat pour « {query} »</p>
-            )
-          ) : materiel.length === 0 ? (
-            <p className="py-12 text-center text-[0.82rem] text-ink-3">Aucun matériel pour l'instant.</p>
-          ) : (
-            <>
-              {favMateriel.length > 0 && (
-                <div className="mb-6">
-                  <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-amber-500">Favoris</p>
-                  <TubeGrid tubes={favMateriel} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
+            {materiel.length > 0 && (
+              <span className="hidden items-center rounded-full border border-line bg-canvas-2 px-2 py-0.5 text-[0.68rem] font-medium tabular-nums text-ink-2 md:inline-flex">{materiel.length}</span>
+            )}
+            <div className="ml-auto flex items-center gap-2">
+              {materiel.length > 0 && (
+                <div className="hidden items-center rounded-lg border border-line bg-canvas-2 p-0.5 md:flex">
+                  <button onClick={() => changeView('table')} aria-pressed={view === 'table'} className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[0.74rem] font-medium transition-colors duration-150 ${view === 'table' ? 'bg-canvas text-ink shadow-sm' : 'text-ink-3 hover:text-ink-2'}`}>
+                    <Table2 aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Tableau
+                  </button>
+                  <button onClick={() => changeView('cards')} aria-pressed={view === 'cards'} className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[0.74rem] font-medium transition-colors duration-150 ${view === 'cards' ? 'bg-canvas text-ink shadow-sm' : 'text-ink-3 hover:text-ink-2'}`}>
+                    <LayoutGrid aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Cartes
+                  </button>
                 </div>
               )}
-              <div className="mb-6">
-                <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Tous les échantillons</p>
-                <TubeGrid tubes={materiel} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
-              </div>
-            </>
-          )}
+              <button onClick={onNewMateriel} className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[0.78rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
+                <Plus aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Nouveau
+              </button>
+            </div>
+          </div>
+
+          <div className="md:hidden">{renderHome('cards')}</div>
+          <div className="hidden md:block">{renderHome(view)}</div>
         </div>
       )}
 
