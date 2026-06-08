@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History, Table2, LayoutGrid } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TubeGrid } from '@/components/TubeGrid'
-import { MaterielTable, type MaterielSort, type MaterielSortKey } from '@/components/MaterielTable'
+import { MaterielList, MaterielListSkeleton, MaterielEmptyState } from '@/components/MaterielList'
 import { Markdown } from '@/components/Markdown'
 import { MediaGallery } from '@/components/MediaGallery'
 import { formatDate } from '@/lib/format'
@@ -12,29 +13,10 @@ import type { Materiel, CentrifugationStatus, DocItem } from '@/lib/types'
 
 const SW = 1.75
 
-const centriRank: Record<CentrifugationStatus, number> = { obligatoire: 0, oui: 1, variable: 2, non: 3, na: 4 }
-
-function sortMateriel(items: Materiel[], sort: MaterielSort | null): Materiel[] {
-  if (!sort) return items
-  const dir = sort.dir === 'desc' ? -1 : 1
-  const { key } = sort
-  return [...items].sort((a, b) => {
-    const r = key === 'centrifugation'
-      ? centriRank[a.centrifugation] - centriRank[b.centrifugation]
-      : String(a[key] ?? '').localeCompare(String(b[key] ?? ''), 'fr', { sensitivity: 'base' })
-    return r * dir
-  })
-}
-
 export function HomePage() {
   const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel, documentsError, refetchDocuments, onNewDocument, onEditDocument, onDeleteDocument, onTogglePinDocument, links, onEditMaterielLinks, onEditDocLinks, profiles, onShowHistory } = useOutletContext<LayoutCtx>()
   const { isFav, toggle: toggleFav } = useFavorites()
-
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape' && section.startsWith('tube:')) setSection('home') }
-    window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
-  }, [section, setSection])
+  const isDesktop = useMediaQuery('(min-width: 768px)')
 
   const isTube = section.startsWith('tube:')
   const tubeId = isTube ? section.slice(5) : null
@@ -53,12 +35,35 @@ export function HomePage() {
   const hasQuery = query.trim().length > 0
   const favMateriel = useMemo(() => materiel.filter(m => isFav(m.id)), [materiel, isFav])
 
-  const [view, setView] = useState<'table' | 'cards'>(() => {
-    try { return localStorage.getItem('dexlab-mat-view') === 'cards' ? 'cards' : 'table' } catch { return 'table' }
-  })
-  const changeView = (v: 'table' | 'cards') => { setView(v); try { localStorage.setItem('dexlab-mat-view', v) } catch { /* indispo */ } }
-  const [sort, setSort] = useState<MaterielSort | null>(null)
-  const onSort = (key: MaterielSortKey) => setSort(s => (s?.key === key ? (s.dir === 'asc' ? { key, dir: 'desc' } : null) : { key, dir: 'asc' }))
+  // Liste affichée dans le panneau gauche (filtrée par la recherche globale)
+  const listTubes = hasQuery ? filteredMateriel : materiel
+  const listRef = useRef(listTubes)
+  useEffect(() => { listRef.current = listTubes }, [listTubes])
+
+  // Navigation clavier dans l'espace Matériel : ↑/↓ pour parcourir, Échap pour fermer
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (section !== 'home' && !section.startsWith('tube:')) return
+      if (e.key === 'Escape') {
+        if (section.startsWith('tube:')) { e.preventDefault(); setSection('home') }
+        return
+      }
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+      const list = listRef.current
+      if (list.length === 0) return
+      e.preventDefault()
+      const curId = section.startsWith('tube:') ? section.slice(5) : null
+      const idx = curId ? list.findIndex(m => m.id === curId) : -1
+      const next = Math.max(0, Math.min(list.length - 1, e.key === 'ArrowDown' ? idx + 1 : idx - 1))
+      const target = list[next]
+      if (target) setSection(`tube:${target.id}`)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [section, setSection])
 
   const selectTube = (m: Materiel) => setSection(`tube:${m.id}`)
   const handleDelete = async (m: Materiel) => {
@@ -80,12 +85,8 @@ export function HomePage() {
     }
   }
 
-  const renderMatList = (items: Materiel[], mode: 'table' | 'cards') =>
-    mode === 'table'
-      ? <MaterielTable tubes={sortMateriel(items, sort)} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} sort={sort} onSort={onSort} />
-      : <TubeGrid tubes={items} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
-
-  const renderHome = (mode: 'table' | 'cards') => {
+  // Mobile : grille de cartes (avec favoris / résultats de recherche)
+  const renderCards = () => {
     if (materielError) return (
       <div className="rounded-xl border border-red/30 bg-red-soft p-4 text-[0.82rem] text-red">
         Impossible de charger le matériel : {materielError}.
@@ -97,12 +98,12 @@ export function HomePage() {
       ? (
         <div className="mb-6">
           <p className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Résultats ({filteredMateriel.length})</p>
-          {renderMatList(filteredMateriel, mode)}
+          <TubeGrid tubes={filteredMateriel} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
         </div>
       )
       : <p className="py-8 text-center text-[0.82rem] text-ink-3">Aucun résultat pour « {query} »</p>
     if (materiel.length === 0) return <p className="py-12 text-center text-[0.82rem] text-ink-3">Aucun matériel pour l'instant.</p>
-    if (mode === 'cards') return (
+    return (
       <>
         {favMateriel.length > 0 && (
           <div className="mb-6">
@@ -116,52 +117,81 @@ export function HomePage() {
         </div>
       </>
     )
-    return <div className="mb-6">{renderMatList(materiel, 'table')}</div>
+  }
+
+  // Desktop : panneau gauche du workspace
+  const renderListPane = () => {
+    if (materielError) return (
+      <div className="p-4 text-[0.8rem] text-red">
+        Erreur de chargement.
+        <button onClick={refetchMateriel} className="ml-2 font-medium underline">Réessayer</button>
+      </div>
+    )
+    if (loading && materiel.length === 0) return <MaterielListSkeleton />
+    if (materiel.length === 0) return <p className="px-4 py-10 text-center text-[0.8rem] text-ink-3">Aucun matériel.</p>
+    if (hasQuery && filteredMateriel.length === 0) return <p className="px-4 py-10 text-center text-[0.8rem] text-ink-3">Aucun résultat pour « {query} ».</p>
+    return <MaterielList tubes={listTubes} selectedId={selectedTube?.id ?? null} isFav={isFav} onToggleFav={toggleFav} onSelect={selectTube} />
   }
 
   return (
     <>
-      {section === 'home' && (
-        <div className="fade-up">
-          <div className="mb-5 flex items-center gap-2.5">
-            <h1 className="hidden text-lg font-bold text-ink md:block">Matériel</h1>
-            {materiel.length > 0 && (
-              <span className="hidden items-center rounded-full border border-line bg-canvas-2 px-2 py-0.5 text-[0.68rem] font-medium tabular-nums text-ink-2 md:inline-flex">{materiel.length}</span>
-            )}
-            <div className="ml-auto flex items-center gap-2">
+      {(section === 'home' || isTube) && (isDesktop ? (
+        /* ── Desktop : workspace master-detail (liste + fiche) ── */
+        <div className="workspace flex h-[calc(100vh-9rem)] gap-5">
+          <aside className="flex w-80 shrink-0 flex-col">
+            <div className="mb-3 flex items-center gap-2.5">
+              <h1 className="text-base font-bold text-ink">Matériel</h1>
               {materiel.length > 0 && (
-                <div className="hidden items-center rounded-lg border border-line bg-canvas-2 p-0.5 md:flex">
-                  <button onClick={() => changeView('table')} aria-pressed={view === 'table'} className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[0.74rem] font-medium transition-colors duration-150 ${view === 'table' ? 'bg-canvas text-ink shadow-sm' : 'text-ink-3 hover:text-ink-2'}`}>
-                    <Table2 aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Tableau
-                  </button>
-                  <button onClick={() => changeView('cards')} aria-pressed={view === 'cards'} className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[0.74rem] font-medium transition-colors duration-150 ${view === 'cards' ? 'bg-canvas text-ink shadow-sm' : 'text-ink-3 hover:text-ink-2'}`}>
-                    <LayoutGrid aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Cartes
-                  </button>
-                </div>
+                <span className="inline-flex items-center rounded-full border border-line bg-canvas-2 px-2 py-0.5 text-[0.66rem] font-medium tabular-nums text-ink-2">{materiel.length}</span>
               )}
-              <button onClick={onNewMateriel} className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[0.78rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
+              <button onClick={onNewMateriel} className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent px-2.5 py-1.5 text-[0.74rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
                 <Plus aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Nouveau
               </button>
             </div>
+            <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-line bg-canvas">
+              {renderListPane()}
+            </div>
+          </aside>
+
+          <section className="workspace-detail min-w-0 flex-1 overflow-y-auto pb-6">
+            {selectedTube ? (
+              <div key={selectedTube.id} className="fade-up relative pl-5">
+                <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[3px] rounded-full" style={{ background: selectedTube.couleur }} />
+                <TubeFiche tube={selectedTube} embedded isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} onEdit={() => onEditMateriel(selectedTube)} onDelete={() => handleDelete(selectedTube)} linkedDocs={documents.filter(d => links.some(l => l.materiel_id === selectedTube.id && l.document_id === d.id))} onEditLinks={() => onEditMaterielLinks(selectedTube)} onOpenDoc={(id) => setSection(id)} profiles={profiles} onShowHistory={() => onShowHistory('materiel', selectedTube.id, selectedTube.nom)} />
+              </div>
+            ) : isTube ? (
+              <div className="flex h-full items-center justify-center px-6 text-center">
+                <p className="text-[0.82rem] text-ink-3">{loading ? 'Chargement…' : 'Échantillon introuvable.'}</p>
+              </div>
+            ) : (
+              <MaterielEmptyState />
+            )}
+          </section>
+        </div>
+      ) : (
+        /* ── Mobile : cartes, ou fiche plein écran ── */
+        isTube ? (
+          selectedTube ? (
+            <TubeFiche tube={selectedTube} isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} onEdit={() => onEditMateriel(selectedTube)} onDelete={() => handleDelete(selectedTube)} linkedDocs={documents.filter(d => links.some(l => l.materiel_id === selectedTube.id && l.document_id === d.id))} onEditLinks={() => onEditMaterielLinks(selectedTube)} onOpenDoc={(id) => setSection(id)} profiles={profiles} onShowHistory={() => onShowHistory('materiel', selectedTube.id, selectedTube.nom)} />
+          ) : (
+            <div className="fade-up">
+              <button onClick={() => setSection('home')} className="mb-4 flex items-center gap-1.5 text-[0.78rem] font-medium text-accent">
+                <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
+              </button>
+              <p className="py-10 text-center text-[0.82rem] text-ink-3">{loading ? 'Chargement…' : 'Échantillon introuvable.'}</p>
+            </div>
+          )
+        ) : (
+          <div className="fade-up">
+            <div className="mb-5 flex items-center">
+              <button onClick={onNewMateriel} className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[0.78rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
+                <Plus aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Nouveau
+              </button>
+            </div>
+            {renderCards()}
           </div>
-
-          <div className="md:hidden">{renderHome('cards')}</div>
-          <div className="hidden md:block">{renderHome(view)}</div>
-        </div>
-      )}
-
-      {isTube && selectedTube && (
-        <TubeFiche tube={selectedTube} isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} onEdit={() => onEditMateriel(selectedTube)} onDelete={() => handleDelete(selectedTube)} linkedDocs={documents.filter(d => links.some(l => l.materiel_id === selectedTube.id && l.document_id === d.id))} onEditLinks={() => onEditMaterielLinks(selectedTube)} onOpenDoc={(id) => setSection(id)} profiles={profiles} onShowHistory={() => onShowHistory('materiel', selectedTube.id, selectedTube.nom)} />
-      )}
-
-      {isTube && !selectedTube && (
-        <div className="fade-up">
-          <button onClick={() => setSection('home')} className="mb-4 flex items-center gap-1.5 text-[0.78rem] font-medium text-accent">
-            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
-          </button>
-          <p className="py-10 text-center text-[0.82rem] text-ink-3">{loading ? 'Chargement…' : 'Échantillon introuvable.'}</p>
-        </div>
-      )}
+        )
+      ))}
 
       {section === 'procedures' && (
         <div className="fade-up mt-2">
@@ -319,7 +349,7 @@ function MetaLine({ item, profiles }: { item: Materiel | DocItem; profiles: Reco
   )
 }
 
-function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedDocs, onEditLinks, onOpenDoc, profiles, onShowHistory }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void; onEdit: () => void; onDelete: () => void; linkedDocs: DocItem[]; onEditLinks: () => void; onOpenDoc: (id: string) => void; profiles: Record<string, string>; onShowHistory: () => void }) {
+function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedDocs, onEditLinks, onOpenDoc, profiles, onShowHistory, embedded = false }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void; onEdit: () => void; onDelete: () => void; linkedDocs: DocItem[]; onEditLinks: () => void; onOpenDoc: (id: string) => void; profiles: Record<string, string>; onShowHistory: () => void; embedded?: boolean }) {
   const [open, setOpen] = useState<Record<string, boolean>>({})
   const toggle = (k: string) => setOpen(p => ({ ...p, [k]: !p[k] }))
 
@@ -329,9 +359,11 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
 
   return (
     <div className="fade-up">
-      <button onClick={onBack} className="print-hide mb-4 flex items-center gap-1.5 text-[0.78rem] font-medium text-accent">
-        <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
-      </button>
+      {!embedded && (
+        <button onClick={onBack} className="print-hide mb-4 flex items-center gap-1.5 text-[0.78rem] font-medium text-accent">
+          <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
+        </button>
+      )}
 
       <div className="mb-6 flex items-start gap-3.5">
         <span className="h-12 w-12 shrink-0 rounded-full border-[0.5px] border-black/10 dark:border-white/15" style={{ background: tube.couleur }} />

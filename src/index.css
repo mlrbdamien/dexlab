@@ -214,6 +214,9 @@
     body { background: #fff; }
     aside, .ticker-banner, .print-hide { display: none !important; }
     main { margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+    /* Workspace master-detail : la fiche doit s'imprimer en entier (pas de hauteur fixe / scroll) */
+    .workspace { display: block !important; height: auto !important; }
+    .workspace-detail { overflow: visible !important; padding-left: 0 !important; }
     .rounded-xl, .rounded-2xl, table, tr, li, .md pre { break-inside: avoid; }
     a { text-decoration: none; color: #000; }
 }
