@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2 } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { TubeGrid } from '@/components/TubeGrid'
 import { Markdown } from '@/components/Markdown'
@@ -142,7 +142,7 @@ export function HomePage() {
 
       {isDoc && currentDoc && (
         <div className="fade-up">
-          <div className="mb-4 flex items-center gap-2">
+          <div className="print-hide mb-4 flex items-center gap-2">
             <button onClick={() => setSection(docBackTo)} className="flex items-center gap-1.5 text-[0.78rem] font-medium text-accent">
               <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
             </button>
@@ -152,6 +152,9 @@ export function HomePage() {
               </button>
               <button onClick={() => handleDeleteDoc(currentDoc)} aria-label="Supprimer" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-red-soft hover:text-red">
                 <Trash2 aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />
+              </button>
+              <button onClick={() => window.print()} aria-label="Imprimer" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-canvas-2 hover:text-ink">
+                <Printer aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />
               </button>
             </div>
           </div>
@@ -163,7 +166,7 @@ export function HomePage() {
           <div className="mt-6 border-t border-line pt-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Matériel lié</span>
-              <button onClick={() => onEditDocLinks(currentDoc)} className="flex items-center gap-1 text-[0.72rem] font-medium text-accent">
+              <button onClick={() => onEditDocLinks(currentDoc)} className="print-hide flex items-center gap-1 text-[0.72rem] font-medium text-accent">
                 <Link2 aria-hidden="true" className="h-3 w-3" strokeWidth={SW} /> Lier
               </button>
             </div>
@@ -252,7 +255,7 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
 
   return (
     <div className="fade-up">
-      <button onClick={onBack} className="mb-4 flex items-center gap-1.5 text-[0.78rem] font-medium text-accent">
+      <button onClick={onBack} className="print-hide mb-4 flex items-center gap-1.5 text-[0.78rem] font-medium text-accent">
         <ArrowLeft className="h-3.5 w-3.5" strokeWidth={SW} /> Retour
       </button>
 
@@ -262,7 +265,7 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
           <h1 className="text-xl font-bold text-ink">{tube.nom}</h1>
           {tube.sousTitre && <p className="mt-0.5 font-mono text-[0.75rem] text-ink-3">{tube.sousTitre}</p>}
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="print-hide flex shrink-0 items-center gap-1">
           <button onClick={onToggleFav} aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'} aria-pressed={isFav} className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-150 ${isFav ? 'bg-amber-50 text-amber-500 dark:bg-amber-900/20' : 'text-ink-3 hover:bg-canvas-2 hover:text-ink-2'}`}>
             <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
           </button>
@@ -271,6 +274,9 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
           </button>
           <button onClick={onDelete} aria-label="Supprimer" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-red-soft hover:text-red">
             <Trash2 aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />
+          </button>
+          <button onClick={() => window.print()} aria-label="Imprimer" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-canvas-2 hover:text-ink">
+            <Printer aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />
           </button>
         </div>
       </div>
@@ -356,7 +362,7 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
       <div className="mt-2 border-t border-line pt-4">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Documents liés</span>
-          <button onClick={onEditLinks} className="flex items-center gap-1 text-[0.72rem] font-medium text-accent">
+          <button onClick={onEditLinks} className="print-hide flex items-center gap-1 text-[0.72rem] font-medium text-accent">
             <Link2 aria-hidden="true" className="h-3 w-3" strokeWidth={SW} /> Lier
           </button>
         </div>
@@ -384,7 +390,7 @@ function FicheAccordion({ title, badge, isOpen, onToggle, children }: { title: s
           <span className="rounded-md bg-org-soft px-1.5 py-0.5 text-[0.58rem] font-bold text-org">{badge}</span>
         )}
       </button>
-      {isOpen && <div className="pb-4 pl-6">{children}</div>}
+      <div className={`pb-4 pl-6 ${isOpen ? '' : 'hidden print:block'}`}>{children}</div>
     </div>
   )
 }

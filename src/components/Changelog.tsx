@@ -55,7 +55,7 @@ export function Changelog() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="mt-8 border-t border-line pt-4">
+    <div className="print-hide mt-8 border-t border-line pt-4">
       <button
         onClick={() => setOpen(v => !v)}
         className="state-hover flex items-center gap-2 text-[0.75rem] font-medium text-ink-3 hover:text-ink-2"

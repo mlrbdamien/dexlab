@@ -170,7 +170,7 @@ export function Layout() {
       {/* ── Zone principale ── */}
       <div className={`flex min-h-screen min-w-0 flex-1 flex-col transition-[margin] duration-200 ease-out ${collapsed ? 'md:ml-16' : 'md:ml-60'}`}>
         {/* Header mobile (glass) */}
-        <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line/60 bg-canvas/70 px-5 backdrop-blur-xl md:hidden">
+        <header className="print-hide sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line/60 bg-canvas/70 px-5 backdrop-blur-xl md:hidden">
           <div className="flex items-center gap-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent">
               <Droplets aria-hidden="true" className="h-3.5 w-3.5 text-white" strokeWidth={SW} />
@@ -189,7 +189,7 @@ export function Layout() {
         <TickerBanner />
 
         {/* Barre de recherche (glass, sticky) */}
-        <div className="sticky top-14 z-30 border-b border-line/60 bg-canvas/70 px-5 py-4 backdrop-blur-xl md:top-0 md:px-10">
+        <div className="print-hide sticky top-14 z-30 border-b border-line/60 bg-canvas/70 px-5 py-4 backdrop-blur-xl md:top-0 md:px-10">
           <div className="mx-auto w-full max-w-5xl">
             <SearchBar value={query} onChange={setQuery} onOpenPalette={openPalette} />
           </div>
@@ -204,7 +204,7 @@ export function Layout() {
       {/* ── Barre mobile (glass) ── */}
       <nav
         aria-label="Navigation mobile"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-line/60 bg-canvas/80 backdrop-blur-xl md:hidden"
+        className="print-hide fixed inset-x-0 bottom-0 z-50 border-t border-line/60 bg-canvas/80 backdrop-blur-xl md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex h-16">

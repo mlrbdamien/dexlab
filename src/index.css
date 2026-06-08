@@ -199,3 +199,21 @@
 .md th { background: var(--c-canvas-2); color: var(--c-ink); font-weight: 600; white-space: nowrap; }
 .md input[type="checkbox"] { margin-right: 0.4em; accent-color: var(--c-accent); }
 .md ul:has(input[type="checkbox"]) { list-style: none; padding-left: 0.2em; }
+
+/* ═══════════════════════════════════════════════════════════
+   Impression
+   ═══════════════════════════════════════════════════════════ */
+@media print {
+    /* Tout en noir sur blanc, quel que soit le thème */
+    :root, [data-theme="light"], [data-theme="dark"] {
+        --c-canvas: #ffffff; --c-canvas-2: #ffffff; --c-canvas-3: #ffffff;
+        --c-ink: #000000; --c-ink-2: #1a1a1a; --c-ink-3: #555555;
+        --c-line: #cccccc;
+        --c-accent: #000000; --c-accent-soft: #f0f0f0; --c-accent-ink: #000000;
+    }
+    body { background: #fff; }
+    aside, .ticker-banner, .print-hide { display: none !important; }
+    main { margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+    .rounded-xl, .rounded-2xl, table, tr, li, .md pre { break-inside: avoid; }
+    a { text-decoration: none; color: #000; }
+}
