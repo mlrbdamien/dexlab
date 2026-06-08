@@ -28,4 +28,6 @@ export interface LayoutCtx {
   links: MaterielDocumentLink[]
   onEditMaterielLinks: (m: Materiel) => void
   onEditDocLinks: (d: DocItem) => void
+  profiles: Record<string, string>
+  onShowHistory: (table: 'materiel' | 'documents', id: string, title: string) => void
 }

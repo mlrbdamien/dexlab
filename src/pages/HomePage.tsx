@@ -1,16 +1,17 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { TubeGrid } from '@/components/TubeGrid'
 import { Markdown } from '@/components/Markdown'
+import { formatDate } from '@/lib/format'
 import type { LayoutCtx } from '@/lib/navigation'
 import type { Materiel, CentrifugationStatus, DocItem } from '@/lib/types'
 
 const SW = 1.75
 
 export function HomePage() {
-  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel, documentsError, refetchDocuments, onNewDocument, onEditDocument, onDeleteDocument, onTogglePinDocument, links, onEditMaterielLinks, onEditDocLinks } = useOutletContext<LayoutCtx>()
+  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel, documentsError, refetchDocuments, onNewDocument, onEditDocument, onDeleteDocument, onTogglePinDocument, links, onEditMaterielLinks, onEditDocLinks, profiles, onShowHistory } = useOutletContext<LayoutCtx>()
   const { isFav, toggle: toggleFav } = useFavorites()
 
   useEffect(() => {
@@ -103,7 +104,7 @@ export function HomePage() {
       )}
 
       {isTube && selectedTube && (
-        <TubeFiche tube={selectedTube} isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} onEdit={() => onEditMateriel(selectedTube)} onDelete={() => handleDelete(selectedTube)} linkedDocs={documents.filter(d => links.some(l => l.materiel_id === selectedTube.id && l.document_id === d.id))} onEditLinks={() => onEditMaterielLinks(selectedTube)} onOpenDoc={(id) => setSection(id)} />
+        <TubeFiche tube={selectedTube} isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} onEdit={() => onEditMateriel(selectedTube)} onDelete={() => handleDelete(selectedTube)} linkedDocs={documents.filter(d => links.some(l => l.materiel_id === selectedTube.id && l.document_id === d.id))} onEditLinks={() => onEditMaterielLinks(selectedTube)} onOpenDoc={(id) => setSection(id)} profiles={profiles} onShowHistory={() => onShowHistory('materiel', selectedTube.id, selectedTube.nom)} />
       )}
 
       {isTube && !selectedTube && (
@@ -158,7 +159,13 @@ export function HomePage() {
               </button>
             </div>
           </div>
-          <h2 className="mb-4 text-base font-bold text-ink">{currentDoc.titre}</h2>
+          <h2 className="mb-1 text-base font-bold text-ink">{currentDoc.titre}</h2>
+          <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <MetaLine item={currentDoc} profiles={profiles} />
+            <button onClick={() => onShowHistory('documents', currentDoc.id, currentDoc.titre)} className="print-hide inline-flex items-center gap-1 text-[0.68rem] font-medium text-accent transition-colors duration-150 hover:text-accent-ink">
+              <History aria-hidden="true" className="h-3 w-3" strokeWidth={SW} /> Historique
+            </button>
+          </div>
           {currentDoc.contenu.trim()
             ? <Markdown>{currentDoc.contenu}</Markdown>
             : <p className="text-[0.82rem] text-ink-3">Ce document est vide.</p>}
@@ -246,7 +253,21 @@ const centriColor: Record<CentrifugationStatus, string> = {
   non: 'bg-red-soft text-red', variable: 'bg-canvas-2 text-ink-2', na: 'bg-canvas-2 text-ink-3',
 }
 
-function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedDocs, onEditLinks, onOpenDoc }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void; onEdit: () => void; onDelete: () => void; linkedDocs: DocItem[]; onEditLinks: () => void; onOpenDoc: (id: string) => void }) {
+// Ligne de traçabilité « Créé/Modifié par X le … »
+function MetaLine({ item, profiles }: { item: Materiel | DocItem; profiles: Record<string, string> }) {
+  const when = item.updatedAt ?? item.createdAt
+  if (!when) return null
+  const modified = Boolean(item.updatedAt && item.createdAt && item.updatedAt !== item.createdAt)
+  const byId = (modified ? item.updatedBy : item.createdBy) ?? null
+  const name = byId ? profiles[byId] : null
+  return (
+    <span className="text-[0.68rem] text-ink-3">
+      {modified ? 'Modifié' : 'Créé'}{name ? ` par ${name}` : ''} le {formatDate(when)}
+    </span>
+  )
+}
+
+function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedDocs, onEditLinks, onOpenDoc, profiles, onShowHistory }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void; onEdit: () => void; onDelete: () => void; linkedDocs: DocItem[]; onEditLinks: () => void; onOpenDoc: (id: string) => void; profiles: Record<string, string>; onShowHistory: () => void }) {
   const [open, setOpen] = useState<Record<string, boolean>>({})
   const toggle = (k: string) => setOpen(p => ({ ...p, [k]: !p[k] }))
 
@@ -264,6 +285,12 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-bold text-ink">{tube.nom}</h1>
           {tube.sousTitre && <p className="mt-0.5 font-mono text-[0.75rem] text-ink-3">{tube.sousTitre}</p>}
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <MetaLine item={tube} profiles={profiles} />
+            <button onClick={onShowHistory} className="print-hide inline-flex items-center gap-1 text-[0.68rem] font-medium text-accent transition-colors duration-150 hover:text-accent-ink">
+              <History aria-hidden="true" className="h-3 w-3" strokeWidth={SW} /> Historique
+            </button>
+          </div>
         </div>
         <div className="print-hide flex shrink-0 items-center gap-1">
           <button onClick={onToggleFav} aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'} aria-pressed={isFav} className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-150 ${isFav ? 'bg-amber-50 text-amber-500 dark:bg-amber-900/20' : 'text-ink-3 hover:bg-canvas-2 hover:text-ink-2'}`}>

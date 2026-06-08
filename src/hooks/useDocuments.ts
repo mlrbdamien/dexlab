@@ -10,6 +10,10 @@ interface DocRow {
   tags: string[] | null
   epingle: boolean
   position: number
+  created_at: string | null
+  updated_at: string | null
+  created_by: string | null
+  updated_by: string | null
 }
 
 function rowToDoc(r: DocRow): DocItem {
@@ -21,6 +25,10 @@ function rowToDoc(r: DocRow): DocItem {
     tags: r.tags ?? [],
     epingle: r.epingle,
     position: r.position,
+    createdAt: r.created_at ?? undefined,
+    updatedAt: r.updated_at ?? undefined,
+    createdBy: r.created_by,
+    updatedBy: r.updated_by,
   }
 }
 

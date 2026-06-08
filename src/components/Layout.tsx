@@ -7,6 +7,7 @@ import { useSearch } from '@/hooks/useSearch'
 import { useMateriel } from '@/hooks/useMateriel'
 import { useDocuments } from '@/hooks/useDocuments'
 import { useLinks } from '@/hooks/useLinks'
+import { useProfiles } from '@/hooks/useProfiles'
 import { SearchBar } from '@/components/SearchBar'
 import { TickerBanner } from '@/components/TickerBanner'
 import { Changelog } from '@/components/Changelog'
@@ -14,6 +15,7 @@ import { CommandPalette } from '@/components/CommandPalette'
 import { MaterielForm } from '@/components/MaterielForm'
 import { DocumentForm } from '@/components/DocumentForm'
 import { LinkPicker } from '@/components/LinkPicker'
+import { HistoryPanel } from '@/components/HistoryPanel'
 import { createMateriel, updateMateriel, deleteMateriel } from '@/lib/materielApi'
 import { createDocument, updateDocument, deleteDocument } from '@/lib/documentApi'
 import { setMaterielLinks, setDocumentLinks } from '@/lib/linkApi'
@@ -29,6 +31,7 @@ export function Layout() {
   const { materiel, loading, error: materielError, refetch } = useMateriel()
   const { documents, loading: documentsLoading, error: documentsError, refetch: refetchDocuments } = useDocuments()
   const { links, refetch: refetchLinks } = useLinks()
+  const profiles = useProfiles()
   const procedureDocs = documents.filter(d => d.type === 'procedure')
   const { query, setQuery, filteredMateriel } = useSearch(materiel)
 
@@ -107,6 +110,11 @@ export function Layout() {
     await refetchLinks()
   }, [linkPicker, links, refetchLinks])
 
+  // Panneau Historique (traçabilité)
+  const [history, setHistory] = useState<{ table: 'materiel' | 'documents'; id: string; title: string } | null>(null)
+  const showHistory = useCallback((table: 'materiel' | 'documents', id: string, title: string) => setHistory({ table, id, title }), [])
+  const closeHistory = useCallback(() => setHistory(null), [])
+
   // Raccourci global ⌘K / Ctrl+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -128,7 +136,7 @@ export function Layout() {
     setSection(map[tab] ?? 'home')
   }
 
-  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel: refetch, onNewMateriel: openNewMateriel, onEditMateriel: openEditMateriel, onDeleteMateriel: handleDeleteMateriel, documentsError, refetchDocuments, onNewDocument: openNewDocument, onEditDocument: openEditDocument, onDeleteDocument: handleDeleteDocument, onTogglePinDocument: handleTogglePin, links, onEditMaterielLinks: openMaterielLinks, onEditDocLinks: openDocLinks }
+  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel: refetch, onNewMateriel: openNewMateriel, onEditMateriel: openEditMateriel, onDeleteMateriel: handleDeleteMateriel, documentsError, refetchDocuments, onNewDocument: openNewDocument, onEditDocument: openEditDocument, onDeleteDocument: handleDeleteDocument, onTogglePinDocument: handleTogglePin, links, onEditMaterielLinks: openMaterielLinks, onEditDocLinks: openDocLinks, profiles, onShowHistory: showHistory }
 
   return (
     <div className="flex min-h-screen bg-canvas text-ink">
@@ -232,6 +240,10 @@ export function Layout() {
           onSave={saveLinks}
           onClose={closeLinkPicker}
         />
+      )}
+
+      {history && (
+        <HistoryPanel table={history.table} rowId={history.id} title={history.title} profiles={profiles} onClose={closeHistory} />
       )}
     </div>
   )

@@ -19,6 +19,10 @@ interface MaterielRow {
   alertes: string[] | null
   cas_particuliers: string[] | null
   position: number
+  created_at: string | null
+  updated_at: string | null
+  created_by: string | null
+  updated_by: string | null
 }
 
 function rowToMateriel(r: MaterielRow): Materiel {
@@ -39,6 +43,10 @@ function rowToMateriel(r: MaterielRow): Materiel {
     alertes: r.alertes ?? [],
     casParticuliers: r.cas_particuliers ?? [],
     position: r.position,
+    createdAt: r.created_at ?? undefined,
+    updatedAt: r.updated_at ?? undefined,
+    createdBy: r.created_by,
+    updatedBy: r.updated_by,
   }
 }
 

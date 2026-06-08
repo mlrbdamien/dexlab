@@ -33,10 +33,18 @@ export interface Materiel {
   alertes: string[];
   casParticuliers: string[];
   position: number;
+  // Traçabilité (renseignés par la base ; jamais envoyés en écriture)
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string | null;
+  updatedBy?: string | null;
 }
 
-// Champs éditables (création / mise à jour) — sans id ni position.
-export type MaterielInput = Omit<Materiel, 'id' | 'position'>;
+// Champs éditables (création / mise à jour) — sans id, position ni traçabilité.
+export type MaterielInput = Omit<
+  Materiel,
+  'id' | 'position' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+>;
 
 // --- Documents (notes / mémos / procédures) ---
 
@@ -50,9 +58,17 @@ export interface DocItem {
   tags: string[];
   epingle: boolean;
   position: number;
+  // Traçabilité (renseignés par la base ; jamais envoyés en écriture)
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string | null;
+  updatedBy?: string | null;
 }
 
-export type DocInput = Omit<DocItem, 'id' | 'position'>;
+export type DocInput = Omit<
+  DocItem,
+  'id' | 'position' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+>;
 
 // --- Liaison Matériel ↔ Document (références croisées) ---
 
