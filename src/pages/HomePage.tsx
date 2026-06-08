@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Activity, ArrowRightCircle, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2, Printer, History } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TubeGrid } from '@/components/TubeGrid'
@@ -335,6 +335,21 @@ const centriBand: Record<CentrifugationStatus, { band: string; text: string; bar
   na:          { band: 'bg-canvas-2', text: 'text-ink-2', bar: 'border-ink-3' },
 }
 
+// Un code (étiquette / excès / sans analyse) : valeur mono proéminente
+// + détail entre parenthèses en petit. Tous au même niveau d'importance.
+function CodeStat({ label, value }: { label: string; value: string }) {
+  const m = value.match(/^(.*?)\s*\((.*)\)\s*$/)
+  const main = m ? m[1] : value
+  const detail = m ? m[2] : null
+  return (
+    <div className="min-w-0">
+      <div className="mb-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">{label}</div>
+      <div className="font-mono text-xl font-bold leading-tight text-ink">{main || '—'}</div>
+      {detail && <div className="mt-1 font-mono text-[0.7rem] text-ink-3">{detail}</div>}
+    </div>
+  )
+}
+
 // Ligne de traçabilité « Créé/Modifié par X le … »
 function MetaLine({ item, profiles }: { item: Materiel | DocItem; profiles: Record<string, string> }) {
   const when = item.updatedAt ?? item.createdAt
@@ -350,9 +365,6 @@ function MetaLine({ item, profiles }: { item: Materiel | DocItem; profiles: Reco
 }
 
 function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedDocs, onEditLinks, onOpenDoc, profiles, onShowHistory, embedded = false }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void; onEdit: () => void; onDelete: () => void; linkedDocs: DocItem[]; onEditLinks: () => void; onOpenDoc: (id: string) => void; profiles: Record<string, string>; onShowHistory: () => void; embedded?: boolean }) {
-  const [open, setOpen] = useState<Record<string, boolean>>({})
-  const toggle = (k: string) => setOpen(p => ({ ...p, [k]: !p[k] }))
-
   const casCount = tube.casParticuliers.length + tube.alertes.length
   const hasNotes = tube.notes.length > 0 || Boolean(tube.codeReserve)
   const cb = centriBand[tube.centrifugation] ?? centriBand.na
@@ -404,73 +416,68 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
           </div>
         </div>
 
-        {/* Étiquette + Destinations — grosses valeurs, sans cartes */}
-        <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2">
-          <div className="sm:pr-6">
-            <div className="mb-1.5 flex items-center gap-2">
-              <Tag aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" strokeWidth={SW} />
-              <span className="text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Étiquette</span>
-            </div>
-            <div className="font-mono text-[1.9rem] font-bold leading-none tracking-tight text-ink">{tube.etiquette || '—'}</div>
-            {tube.codeExces && <p className="mt-2 font-mono text-[0.68rem] text-ink-3">excès · {tube.codeExces}</p>}
-            {tube.codeSansAnalyse && <p className="font-mono text-[0.68rem] text-ink-3">sans analyse · {tube.codeSansAnalyse}</p>}
-          </div>
-
-          {tube.destinations.length > 0 && (
-            <div className="sm:border-l sm:border-line sm:pl-6">
-              <div className="mb-2 flex items-center gap-2">
-                <ArrowRightCircle aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" strokeWidth={SW} />
-                <span className="text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Destinations</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {tube.destinations.map((d, i) => (
-                  <div key={i} className="rounded-md border border-line bg-canvas-2 px-2 py-1 text-[0.72rem]">
-                    <strong className="font-semibold text-ink">{d.label}</strong>
-                    {d.detail && <span className="ml-1 text-[0.65rem] text-ink-3">· {d.detail}</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Codes — étiquette, excès, sans analyse (importance égale) */}
+        <div className="mb-5 flex flex-wrap gap-x-10 gap-y-4">
+          <CodeStat label="Étiquette" value={tube.etiquette || '—'} />
+          {tube.codeExces && <CodeStat label="Excès" value={tube.codeExces} />}
+          {tube.codeSansAnalyse && <CodeStat label="Sans analyse" value={tube.codeSansAnalyse} />}
         </div>
+
+        {tube.destinations.length > 0 && (
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              <ArrowRightCircle aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" strokeWidth={SW} />
+              <span className="text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Destinations</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {tube.destinations.map((d, i) => (
+                <div key={i} className="rounded-md border border-line bg-canvas-2 px-2 py-1 text-[0.72rem]">
+                  <strong className="font-semibold text-ink">{d.label}</strong>
+                  {d.detail && <span className="ml-1 text-[0.65rem] text-ink-3">· {d.detail}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <MediaGallery key={tube.id} materielId={tube.id} />
 
-      {(casCount > 0 || hasNotes) && (
-        <div className="mt-2 border-t border-line">
-          {casCount > 0 && (
-            <FicheAccordion title="Cas particuliers" badge={casCount} isOpen={!!open.cas} onToggle={() => toggle('cas')}>
-              {tube.alertes.length > 0 && (
-                <div className="mb-2 rounded-md border-l-[3px] border-l-red bg-red-soft p-3">
-                  <h4 className="mb-1 text-[0.62rem] font-bold uppercase tracking-[0.06em] text-red">⚠ Attention</h4>
-                  <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink-2">
-                    {tube.alertes.map((a, i) => <li key={i}>{a}</li>)}
-                  </ul>
-                </div>
-              )}
-              {tube.casParticuliers.length > 0 && (
-                <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink-2">
-                  {tube.casParticuliers.map((c, i) => <li key={i}>{c}</li>)}
-                </ul>
-              )}
-            </FicheAccordion>
+      {casCount > 0 && (
+        <div className="mt-4 border-t border-line pt-4">
+          <div className="mb-2.5 flex items-center gap-2">
+            <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Cas particuliers</span>
+            <span className="rounded-md bg-org-soft px-1.5 py-0.5 text-[0.58rem] font-bold text-org">{casCount}</span>
+          </div>
+          {tube.alertes.length > 0 && (
+            <div className="mb-2 rounded-md border-l-[3px] border-l-red bg-red-soft p-3">
+              <h4 className="mb-1 text-[0.62rem] font-bold uppercase tracking-[0.06em] text-red">⚠ Attention</h4>
+              <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink-2">
+                {tube.alertes.map((a, i) => <li key={i}>{a}</li>)}
+              </ul>
+            </div>
           )}
+          {tube.casParticuliers.length > 0 && (
+            <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink-2">
+              {tube.casParticuliers.map((c, i) => <li key={i}>{c}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
 
-          {hasNotes && (
-            <FicheAccordion title="Notes & codes" isOpen={!!open.notes} onToggle={() => toggle('notes')}>
-              {tube.codeReserve && (
-                <div className="mb-2 flex items-baseline gap-2">
-                  <span className="text-[0.72rem] text-ink-3">Réserve</span>
-                  <code className="rounded border border-line bg-canvas-2 px-1.5 py-0.5 font-mono text-[0.72rem]">{tube.codeReserve}</code>
-                </div>
-              )}
-              {tube.notes.length > 0 && (
-                <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink-2">
-                  {tube.notes.map((n, i) => <li key={i}>{n}</li>)}
-                </ul>
-              )}
-            </FicheAccordion>
+      {hasNotes && (
+        <div className="mt-4 border-t border-line pt-4">
+          <div className="mb-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Notes &amp; codes</div>
+          {tube.codeReserve && (
+            <div className="mb-2 flex items-baseline gap-2">
+              <span className="text-[0.72rem] text-ink-3">Réserve</span>
+              <code className="rounded border border-line bg-canvas-2 px-1.5 py-0.5 font-mono text-[0.72rem]">{tube.codeReserve}</code>
+            </div>
+          )}
+          {tube.notes.length > 0 && (
+            <ul className="ml-3 list-disc space-y-0.5 text-[0.75rem] text-ink-2">
+              {tube.notes.map((n, i) => <li key={i}>{n}</li>)}
+            </ul>
           )}
         </div>
       )}
@@ -496,17 +503,3 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
   )
 }
 
-function FicheAccordion({ title, badge, isOpen, onToggle, children }: { title: string; badge?: number; isOpen: boolean; onToggle: () => void; children: React.ReactNode }) {
-  return (
-    <div className="border-b border-line last:border-b-0">
-      <button onClick={onToggle} className="state-hover flex w-full items-center gap-2 py-3.5 text-left">
-        <ChevronDown className={`h-3.5 w-3.5 text-ink-3 transition-transform duration-150 ${isOpen ? '' : '-rotate-90'}`} strokeWidth={SW} />
-        <span className="flex-1 text-[0.82rem] font-medium text-ink">{title}</span>
-        {badge !== undefined && badge > 0 && (
-          <span className="rounded-md bg-org-soft px-1.5 py-0.5 text-[0.58rem] font-bold text-org">{badge}</span>
-        )}
-      </button>
-      <div className={`pb-4 pl-6 ${isOpen ? '' : 'hidden print:block'}`}>{children}</div>
-    </div>
-  )
-}
