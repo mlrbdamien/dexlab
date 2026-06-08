@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2, StickyNote, Pin, Link2 } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { TubeGrid } from '@/components/TubeGrid'
 import { Markdown } from '@/components/Markdown'
@@ -10,7 +10,7 @@ import type { Materiel, CentrifugationStatus, DocItem } from '@/lib/types'
 const SW = 1.75
 
 export function HomePage() {
-  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel, documentsError, refetchDocuments, onNewDocument, onEditDocument, onDeleteDocument } = useOutletContext<LayoutCtx>()
+  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel, documentsError, refetchDocuments, onNewDocument, onEditDocument, onDeleteDocument, links, onEditMaterielLinks, onEditDocLinks } = useOutletContext<LayoutCtx>()
   const { isFav, toggle: toggleFav } = useFavorites()
 
   useEffect(() => {
@@ -31,6 +31,7 @@ export function HomePage() {
   const isDoc = !['home', 'procedures', 'notes'].includes(section) && !isTube
   const currentDoc = isDoc ? documents.find(d => d.id === section) ?? null : null
   const docBackTo = currentDoc?.type === 'procedure' ? 'procedures' : 'notes'
+  const linkedMateriel = currentDoc ? materiel.filter(m => links.some(l => l.document_id === currentDoc.id && l.materiel_id === m.id)) : []
 
   const hasQuery = query.trim().length > 0
   const favMateriel = useMemo(() => materiel.filter(m => isFav(m.id)), [materiel, isFav])
@@ -102,7 +103,7 @@ export function HomePage() {
       )}
 
       {isTube && selectedTube && (
-        <TubeFiche tube={selectedTube} isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} onEdit={() => onEditMateriel(selectedTube)} onDelete={() => handleDelete(selectedTube)} />
+        <TubeFiche tube={selectedTube} isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} onEdit={() => onEditMateriel(selectedTube)} onDelete={() => handleDelete(selectedTube)} linkedDocs={documents.filter(d => links.some(l => l.materiel_id === selectedTube.id && l.document_id === d.id))} onEditLinks={() => onEditMaterielLinks(selectedTube)} onOpenDoc={(id) => setSection(id)} />
       )}
 
       {isTube && !selectedTube && (
@@ -158,6 +159,26 @@ export function HomePage() {
           {currentDoc.contenu.trim()
             ? <Markdown>{currentDoc.contenu}</Markdown>
             : <p className="text-[0.82rem] text-ink-3">Ce document est vide.</p>}
+
+          <div className="mt-6 border-t border-line pt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Matériel lié</span>
+              <button onClick={() => onEditDocLinks(currentDoc)} className="flex items-center gap-1 text-[0.72rem] font-medium text-accent">
+                <Link2 aria-hidden="true" className="h-3 w-3" strokeWidth={SW} /> Lier
+              </button>
+            </div>
+            {linkedMateriel.length === 0 ? (
+              <p className="text-[0.75rem] text-ink-3">Aucun matériel lié.</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {linkedMateriel.map(m => (
+                  <button key={m.id} onClick={() => setSection(`tube:${m.id}`)} className="flex items-center gap-1.5 rounded-lg border border-line bg-canvas-2 px-2.5 py-1 text-[0.72rem] text-ink-2 transition-colors duration-150 hover:text-ink">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: m.couleur }} /> {m.nom}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -218,7 +239,7 @@ const centriColor: Record<CentrifugationStatus, string> = {
   non: 'bg-red-soft text-red', variable: 'bg-canvas-2 text-ink-2', na: 'bg-canvas-2 text-ink-3',
 }
 
-function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void; onEdit: () => void; onDelete: () => void }) {
+function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedDocs, onEditLinks, onOpenDoc }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void; onEdit: () => void; onDelete: () => void; linkedDocs: DocItem[]; onEditLinks: () => void; onOpenDoc: (id: string) => void }) {
   const [open, setOpen] = useState<Record<string, boolean>>({})
   const toggle = (k: string) => setOpen(p => ({ ...p, [k]: !p[k] }))
 
@@ -327,6 +348,24 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete }: { tub
           )}
         </div>
       )}
+
+      <div className="mt-2 border-t border-line pt-4">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Documents liés</span>
+          <button onClick={onEditLinks} className="flex items-center gap-1 text-[0.72rem] font-medium text-accent">
+            <Link2 aria-hidden="true" className="h-3 w-3" strokeWidth={SW} /> Lier
+          </button>
+        </div>
+        {linkedDocs.length === 0 ? (
+          <p className="text-[0.75rem] text-ink-3">Aucun document lié.</p>
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {linkedDocs.map(d => (
+              <button key={d.id} onClick={() => onOpenDoc(d.id)} className="rounded-lg border border-line bg-canvas-2 px-2.5 py-1 text-[0.72rem] text-ink-2 transition-colors duration-150 hover:text-ink">{d.titre}</button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

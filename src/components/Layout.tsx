@@ -6,14 +6,17 @@ import { useTheme } from '@/hooks/useTheme'
 import { useSearch } from '@/hooks/useSearch'
 import { useMateriel } from '@/hooks/useMateriel'
 import { useDocuments } from '@/hooks/useDocuments'
+import { useLinks } from '@/hooks/useLinks'
 import { SearchBar } from '@/components/SearchBar'
 import { TickerBanner } from '@/components/TickerBanner'
 import { Changelog } from '@/components/Changelog'
 import { CommandPalette } from '@/components/CommandPalette'
 import { MaterielForm } from '@/components/MaterielForm'
 import { DocumentForm } from '@/components/DocumentForm'
+import { LinkPicker } from '@/components/LinkPicker'
 import { createMateriel, updateMateriel, deleteMateriel } from '@/lib/materielApi'
 import { createDocument, updateDocument, deleteDocument } from '@/lib/documentApi'
+import { setMaterielLinks, setDocumentLinks } from '@/lib/linkApi'
 import type { LucideIcon } from 'lucide-react'
 import type { Section, LayoutCtx } from '@/lib/navigation'
 import type { Materiel, MaterielInput, DocItem, DocInput, DocType } from '@/lib/types'
@@ -25,6 +28,7 @@ export function Layout() {
   const [section, setSection] = useState<Section>('home')
   const { materiel, loading, error: materielError, refetch } = useMateriel()
   const { documents, loading: documentsLoading, error: documentsError, refetch: refetchDocuments } = useDocuments()
+  const { links, refetch: refetchLinks } = useLinks()
   const procedureDocs = documents.filter(d => d.type === 'procedure')
   const { query, setQuery, filteredMateriel } = useSearch(materiel)
 
@@ -81,6 +85,24 @@ export function Layout() {
     await refetchDocuments()
   }, [refetchDocuments])
 
+  // Liens croisés Matériel ↔ Document
+  const [linkPicker, setLinkPicker] = useState<{ kind: 'materiel' | 'document'; id: string } | null>(null)
+  const openMaterielLinks = useCallback((m: Materiel) => setLinkPicker({ kind: 'materiel', id: m.id }), [])
+  const openDocLinks = useCallback((d: DocItem) => setLinkPicker({ kind: 'document', id: d.id }), [])
+  const closeLinkPicker = useCallback(() => setLinkPicker(null), [])
+  const saveLinks = useCallback(async (desiredIds: string[]) => {
+    if (!linkPicker) return
+    if (linkPicker.kind === 'materiel') {
+      const current = links.filter(l => l.materiel_id === linkPicker.id).map(l => l.document_id)
+      await setMaterielLinks(linkPicker.id, desiredIds, current)
+    } else {
+      const current = links.filter(l => l.document_id === linkPicker.id).map(l => l.materiel_id)
+      await setDocumentLinks(linkPicker.id, desiredIds, current)
+    }
+    setLinkPicker(null)
+    await refetchLinks()
+  }, [linkPicker, links, refetchLinks])
+
   // Raccourci global ⌘K / Ctrl+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -102,7 +124,7 @@ export function Layout() {
     setSection(map[tab] ?? 'home')
   }
 
-  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel: refetch, onNewMateriel: openNewMateriel, onEditMateriel: openEditMateriel, onDeleteMateriel: handleDeleteMateriel, documentsError, refetchDocuments, onNewDocument: openNewDocument, onEditDocument: openEditDocument, onDeleteDocument: handleDeleteDocument }
+  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel: refetch, onNewMateriel: openNewMateriel, onEditMateriel: openEditMateriel, onDeleteMateriel: handleDeleteMateriel, documentsError, refetchDocuments, onNewDocument: openNewDocument, onEditDocument: openEditDocument, onDeleteDocument: handleDeleteDocument, links, onEditMaterielLinks: openMaterielLinks, onEditDocLinks: openDocLinks }
 
   return (
     <div className="flex min-h-screen bg-canvas text-ink">
@@ -193,6 +215,20 @@ export function Layout() {
       {form.open && <MaterielForm initial={form.editing} onSave={saveMateriel} onClose={closeForm} />}
 
       {docForm.open && <DocumentForm initial={docForm.editing} defaultType={docForm.type} onSave={saveDocument} onClose={closeDocForm} />}
+
+      {linkPicker && (
+        <LinkPicker
+          title={linkPicker.kind === 'materiel' ? 'Documents liés' : 'Matériel lié'}
+          options={linkPicker.kind === 'materiel'
+            ? documents.map(d => ({ id: d.id, label: d.titre, sub: d.type === 'procedure' ? 'Procédure' : d.type === 'memo' ? 'Mémo' : 'Note' }))
+            : materiel.map(m => ({ id: m.id, label: m.nom, sub: m.sousTitre }))}
+          selected={linkPicker.kind === 'materiel'
+            ? links.filter(l => l.materiel_id === linkPicker.id).map(l => l.document_id)
+            : links.filter(l => l.document_id === linkPicker.id).map(l => l.materiel_id)}
+          onSave={saveLinks}
+          onClose={closeLinkPicker}
+        />
+      )}
     </div>
   )
 }

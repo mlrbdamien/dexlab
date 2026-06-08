@@ -97,6 +97,13 @@ export interface DocItem {
 // Champs éditables (création / mise à jour) — sans id ni position.
 export type DocInput = Omit<DocItem, 'id' | 'position'>;
 
+// --- Liaison Matériel ↔ Document (références croisées) ---
+
+export interface MaterielDocumentLink {
+  materiel_id: string;
+  document_id: string;
+}
+
 // --- Statifs de tri ---
 
 export interface Statif {
