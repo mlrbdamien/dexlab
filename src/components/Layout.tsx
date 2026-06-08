@@ -256,11 +256,12 @@ function SideItem({ icon: Icon, label, collapsed, active = false, onClick }: { i
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? label : undefined}
       title={collapsed ? label : undefined}
-      className={`state-hover flex w-full items-center rounded-xl text-[0.82rem] font-medium transition-colors duration-150 ${
-        collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'
-      } ${active ? 'bg-accent-soft text-accent' : 'text-ink-2 hover:text-ink'}`}
+      className={`state-hover relative flex w-full items-center rounded-lg text-[0.82rem] transition-colors duration-150 ${
+        collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2'
+      } ${active ? 'bg-canvas-2 font-semibold text-ink' : 'font-medium text-ink-2 hover:bg-canvas-2 hover:text-ink'}`}
     >
-      <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" strokeWidth={SW} />
+      {active && !collapsed && <span aria-hidden="true" className="absolute left-0 top-1/2 h-4 w-[2.5px] -translate-y-1/2 rounded-full bg-accent" />}
+      <Icon aria-hidden="true" className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-accent' : ''}`} strokeWidth={SW} />
       {!collapsed && <span className="truncate leading-tight">{label}</span>}
     </button>
   )

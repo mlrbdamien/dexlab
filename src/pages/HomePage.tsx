@@ -297,9 +297,8 @@ export function HomePage() {
 const centriLabel: Record<CentrifugationStatus, string> = {
   oui: 'Oui', obligatoire: 'Obligatoire', non: 'Non', variable: 'Variable', na: 'N/A',
 }
-const centriColor: Record<CentrifugationStatus, string> = {
-  oui: 'bg-grn-soft text-grn', obligatoire: 'bg-org-soft text-org',
-  non: 'bg-red-soft text-red', variable: 'bg-canvas-2 text-ink-2', na: 'bg-canvas-2 text-ink-3',
+const centriDot: Record<CentrifugationStatus, string> = {
+  oui: 'bg-grn', obligatoire: 'bg-org', non: 'bg-red', variable: 'bg-ink-3', na: 'bg-ink-3',
 }
 
 // Ligne de traçabilité « Créé/Modifié par X le … »
@@ -358,7 +357,7 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-line bg-canvas p-4">
+        <div className="rounded-xl border border-line bg-canvas p-4">
           <div className="mb-2 flex items-center gap-2">
             <Tag aria-hidden="true" className="h-4 w-4 text-ink-3" strokeWidth={SW} />
             <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Étiquette</span>
@@ -368,19 +367,20 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
           {tube.codeSansAnalyse && <p className="font-mono text-[0.68rem] text-ink-3">sans analyse · {tube.codeSansAnalyse}</p>}
         </div>
 
-        <div className="rounded-2xl border border-line bg-canvas p-4">
+        <div className="rounded-xl border border-line bg-canvas p-4">
           <div className="mb-2 flex items-center gap-2">
             <Activity aria-hidden="true" className="h-4 w-4 text-ink-3" strokeWidth={SW} />
             <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Centrifuger</span>
           </div>
-          <span className={`inline-block rounded-md px-2.5 py-1 text-[0.85rem] font-bold ${centriColor[tube.centrifugation] ?? centriColor.na}`}>
+          <span className="inline-flex items-center gap-2 text-[0.95rem] font-semibold text-ink">
+            <span className={`h-2 w-2 shrink-0 rounded-full ${centriDot[tube.centrifugation] ?? centriDot.na}`} aria-hidden="true" />
             {centriLabel[tube.centrifugation] ?? tube.centrifugation}
           </span>
           {tube.centrifugationDetail && <p className="mt-2 text-[0.72rem] leading-relaxed text-ink-2">{tube.centrifugationDetail}</p>}
         </div>
 
         {tube.destinations.length > 0 && (
-          <div className="rounded-2xl border border-line bg-canvas p-4">
+          <div className="rounded-xl border border-line bg-canvas p-4">
             <div className="mb-2 flex items-center gap-2">
               <ArrowRightCircle aria-hidden="true" className="h-4 w-4 text-ink-3" strokeWidth={SW} />
               <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Destinations</span>
