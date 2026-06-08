@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Tag, Activity, ArrowRightCircle, ChevronDown, FileText, Plus, Pencil, Trash2 } from 'lucide-react'
 import { useFavorites } from '@/hooks/useFavorites'
 import { TubeGrid } from '@/components/TubeGrid'
 import { Markdown } from '@/components/Markdown'
@@ -10,7 +10,7 @@ import type { Materiel, CentrifugationStatus } from '@/lib/types'
 const SW = 1.75
 
 export function HomePage() {
-  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading } = useOutletContext<LayoutCtx>()
+  const { section, setSection, query, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel, onNewMateriel, onEditMateriel, onDeleteMateriel } = useOutletContext<LayoutCtx>()
   const { isFav, toggle: toggleFav } = useFavorites()
 
   useEffect(() => {
@@ -31,16 +31,33 @@ export function HomePage() {
   const favMateriel = useMemo(() => materiel.filter(m => isFav(m.id)), [materiel, isFav])
 
   const selectTube = (m: Materiel) => setSection(`tube:${m.id}`)
+  const handleDelete = async (m: Materiel) => {
+    if (!window.confirm(`Supprimer « ${m.nom} » ? Action irréversible.`)) return
+    try {
+      await onDeleteMateriel(m)
+      setSection('home')
+    } catch {
+      window.alert('Échec de la suppression. Vérifie ta connexion et réessaie.')
+    }
+  }
 
   return (
     <>
       {section === 'home' && (
         <div className="fade-up">
-          <div className="hidden md:block mb-6">
-            <h1 className="text-lg font-bold text-ink">Matériel</h1>
+          <div className="mb-6 flex items-center gap-3">
+            <h1 className="hidden text-lg font-bold text-ink md:block">Matériel</h1>
+            <button onClick={onNewMateriel} className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[0.78rem] font-medium text-white transition duration-150 hover:opacity-90 active:scale-[0.98]">
+              <Plus aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={SW} /> Nouveau
+            </button>
           </div>
 
-          {loading && materiel.length === 0 ? (
+          {materielError ? (
+            <div className="rounded-xl border border-red/30 bg-red-soft p-4 text-[0.82rem] text-red">
+              Impossible de charger le matériel : {materielError}.
+              <button onClick={refetchMateriel} className="ml-2 font-medium underline">Réessayer</button>
+            </div>
+          ) : loading && materiel.length === 0 ? (
             <p className="py-12 text-center text-[0.82rem] text-ink-3">Chargement…</p>
           ) : hasQuery ? (
             filteredMateriel.length > 0 ? (
@@ -71,7 +88,7 @@ export function HomePage() {
       )}
 
       {isTube && selectedTube && (
-        <TubeFiche tube={selectedTube} isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} />
+        <TubeFiche tube={selectedTube} isFav={isFav(selectedTube.id)} onToggleFav={() => toggleFav(selectedTube.id)} onBack={() => setSection('home')} onEdit={() => onEditMateriel(selectedTube)} onDelete={() => handleDelete(selectedTube)} />
       )}
 
       {isTube && !selectedTube && (
@@ -131,7 +148,7 @@ const centriColor: Record<CentrifugationStatus, string> = {
   non: 'bg-red-soft text-red', variable: 'bg-canvas-2 text-ink-2', na: 'bg-canvas-2 text-ink-3',
 }
 
-function TubeFiche({ tube, isFav, onToggleFav, onBack }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void }) {
+function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete }: { tube: Materiel; isFav: boolean; onToggleFav: () => void; onBack: () => void; onEdit: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState<Record<string, boolean>>({})
   const toggle = (k: string) => setOpen(p => ({ ...p, [k]: !p[k] }))
 
@@ -150,9 +167,17 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack }: { tube: Materiel; isFav
           <h1 className="text-xl font-bold text-ink">{tube.nom}</h1>
           {tube.sousTitre && <p className="mt-0.5 font-mono text-[0.75rem] text-ink-3">{tube.sousTitre}</p>}
         </div>
-        <button onClick={onToggleFav} aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'} aria-pressed={isFav} className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-150 ${isFav ? 'bg-amber-50 text-amber-500 dark:bg-amber-900/20' : 'text-ink-3 hover:bg-canvas-2 hover:text-ink-2'}`}>
-          <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          <button onClick={onToggleFav} aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'} aria-pressed={isFav} className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-150 ${isFav ? 'bg-amber-50 text-amber-500 dark:bg-amber-900/20' : 'text-ink-3 hover:bg-canvas-2 hover:text-ink-2'}`}>
+            <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+          </button>
+          <button onClick={onEdit} aria-label="Éditer" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-canvas-2 hover:text-ink">
+            <Pencil aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />
+          </button>
+          <button onClick={onDelete} aria-label="Supprimer" className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors duration-150 hover:bg-red-soft hover:text-red">
+            <Trash2 aria-hidden="true" className="h-4 w-4" strokeWidth={SW} />
+          </button>
+        </div>
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -171,8 +196,8 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack }: { tube: Materiel; isFav
             <Activity aria-hidden="true" className="h-4 w-4 text-ink-3" strokeWidth={SW} />
             <span className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-ink-3">Centrifuger</span>
           </div>
-          <span className={`inline-block rounded-md px-2.5 py-1 text-[0.85rem] font-bold ${centriColor[tube.centrifugation]}`}>
-            {centriLabel[tube.centrifugation]}
+          <span className={`inline-block rounded-md px-2.5 py-1 text-[0.85rem] font-bold ${centriColor[tube.centrifugation] ?? centriColor.na}`}>
+            {centriLabel[tube.centrifugation] ?? tube.centrifugation}
           </span>
           {tube.centrifugationDetail && <p className="mt-2 text-[0.72rem] leading-relaxed text-ink-2">{tube.centrifugationDetail}</p>}
         </div>

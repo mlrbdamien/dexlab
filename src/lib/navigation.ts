@@ -14,4 +14,9 @@ export interface LayoutCtx {
   documents: DocItem[]
   loading: boolean
   documentsLoading: boolean
+  materielError: string | null
+  refetchMateriel: () => void
+  onNewMateriel: () => void
+  onEditMateriel: (m: Materiel) => void
+  onDeleteMateriel: (m: Materiel) => Promise<void>
 }

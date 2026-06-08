@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Fuse from 'fuse.js'
-import { Search, FileText, Crosshair, Sun, Moon, CornerDownLeft, TestTube, LogOut } from 'lucide-react'
+import { Search, FileText, Crosshair, Sun, Moon, CornerDownLeft, TestTube, LogOut, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import type { Section } from '@/lib/navigation'
 import type { Materiel, DocItem } from '@/lib/types'
@@ -24,11 +24,12 @@ interface Props {
   onClose: () => void
   onNavigate: (s: Section) => void
   onToggleTheme: () => void
+  onNewMateriel: () => void
   theme: Theme
 }
 
 // Monté uniquement lorsqu'ouvert (état frais à chaque ouverture).
-export function CommandPalette({ materiel, documents, onClose, onNavigate, onToggleTheme, theme }: Props) {
+export function CommandPalette({ materiel, documents, onClose, onNavigate, onToggleTheme, onNewMateriel, theme }: Props) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -39,13 +40,14 @@ export function CommandPalette({ materiel, documents, onClose, onNavigate, onTog
     const nav: Cmd[] = [
       { id: 'nav-home', label: 'Matériel', group: 'Aller à', icon: Crosshair, keywords: 'accueil home materiel tubes identifier', run: go('home') },
       { id: 'nav-proc', label: 'Procédures', group: 'Aller à', icon: FileText, keywords: 'procedures', run: go('procedures') },
+      { id: 'action-new-mat', label: 'Nouveau matériel', group: 'Action', icon: Plus, keywords: 'nouveau materiel ajouter creer tube', run: () => { onNewMateriel(); onClose() } },
       { id: 'action-theme', label: theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre', group: 'Action', icon: theme === 'dark' ? Sun : Moon, keywords: 'theme mode sombre clair dark light', run: () => { onToggleTheme(); onClose() } },
       { id: 'action-logout', label: 'Se déconnecter', group: 'Action', icon: LogOut, keywords: 'deconnexion logout quitter session', run: () => { void supabase?.auth.signOut(); onClose() } },
     ]
     const procs: Cmd[] = documents.filter(d => d.type === 'procedure').map(d => ({ id: `proc-${d.id}`, label: d.titre, group: 'Procédure', icon: FileText, keywords: `procedure ${d.titre}`, run: go(d.id) }))
     const matCmds: Cmd[] = materiel.map(m => ({ id: `mat-${m.id}`, label: m.nom, group: 'Matériel', icon: TestTube, keywords: `${m.nom} ${m.sousTitre} ${m.etiquette}`, run: go(`tube:${m.id}`) }))
     return [...nav, ...procs, ...matCmds]
-  }, [materiel, documents, theme, onNavigate, onToggleTheme, onClose])
+  }, [materiel, documents, theme, onNavigate, onToggleTheme, onNewMateriel, onClose])
 
   const fuse = useMemo(() => new Fuse(commands, { keys: ['label', 'keywords'], threshold: 0.4, ignoreLocation: true }), [commands])
 
@@ -66,13 +68,13 @@ export function CommandPalette({ materiel, documents, onClose, onNavigate, onTog
   // Navigation clavier
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.preventDefault(); onClose() }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); onClose() }
       else if (e.key === 'ArrowDown') { e.preventDefault(); setActive(a => Math.min(a + 1, results.length - 1)) }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(a => Math.max(a - 1, 0)) }
       else if (e.key === 'Enter') { e.preventDefault(); results[active]?.run() }
     }
-    window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
+    window.addEventListener('keydown', h, true)
+    return () => window.removeEventListener('keydown', h, true)
   }, [results, active, onClose])
 
   // Maintient l'élément actif visible

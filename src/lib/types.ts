@@ -77,6 +77,9 @@ export interface Materiel {
   position: number;
 }
 
+// Champs éditables (création / mise à jour) — sans id ni position.
+export type MaterielInput = Omit<Materiel, 'id' | 'position'>;
+
 // --- Documents (notes / mémos / procédures) ---
 
 export type DocType = 'note' | 'memo' | 'procedure';

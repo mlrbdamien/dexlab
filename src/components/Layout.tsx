@@ -10,15 +10,18 @@ import { SearchBar } from '@/components/SearchBar'
 import { TickerBanner } from '@/components/TickerBanner'
 import { Changelog } from '@/components/Changelog'
 import { CommandPalette } from '@/components/CommandPalette'
+import { MaterielForm } from '@/components/MaterielForm'
+import { createMateriel, updateMateriel, deleteMateriel } from '@/lib/materielApi'
 import type { LucideIcon } from 'lucide-react'
 import type { Section, LayoutCtx } from '@/lib/navigation'
+import type { Materiel, MaterielInput } from '@/lib/types'
 
 const SW = 1.75
 
 export function Layout() {
   const { theme, toggle } = useTheme()
   const [section, setSection] = useState<Section>('home')
-  const { materiel, loading } = useMateriel()
+  const { materiel, loading, error: materielError, refetch } = useMateriel()
   const { documents, loading: documentsLoading } = useDocuments()
   const procedureDocs = documents.filter(d => d.type === 'procedure')
   const { query, setQuery, filteredMateriel } = useSearch(materiel)
@@ -35,6 +38,26 @@ export function Layout() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const openPalette = useCallback(() => setPaletteOpen(true), [])
   const closePalette = useCallback(() => setPaletteOpen(false), [])
+
+  // Formulaire Matériel (création / édition)
+  const [form, setForm] = useState<{ open: boolean; editing: Materiel | null }>({ open: false, editing: null })
+  const openNewMateriel = useCallback(() => setForm({ open: true, editing: null }), [])
+  const openEditMateriel = useCallback((m: Materiel) => setForm({ open: true, editing: m }), [])
+  const closeForm = useCallback(() => setForm({ open: false, editing: null }), [])
+  const saveMateriel = useCallback(async (input: MaterielInput) => {
+    if (form.editing) {
+      await updateMateriel(form.editing.id, input)
+    } else {
+      const nextPos = materiel.length ? Math.max(...materiel.map(m => m.position)) + 1 : 0
+      await createMateriel(input, nextPos)
+    }
+    setForm({ open: false, editing: null })
+    await refetch()
+  }, [form.editing, materiel, refetch])
+  const handleDeleteMateriel = useCallback(async (m: Materiel) => {
+    await deleteMateriel(m.id)
+    await refetch()
+  }, [refetch])
 
   // Raccourci global ⌘K / Ctrl+K
   useEffect(() => {
@@ -55,7 +78,7 @@ export function Layout() {
     setSection(map[tab] ?? 'home')
   }
 
-  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading }
+  const ctx: LayoutCtx = { section, setSection, query, setQuery, materiel, filteredMateriel, documents, loading, documentsLoading, materielError, refetchMateriel: refetch, onNewMateriel: openNewMateriel, onEditMateriel: openEditMateriel, onDeleteMateriel: handleDeleteMateriel }
 
   return (
     <div className="flex min-h-screen bg-canvas text-ink">
@@ -137,7 +160,9 @@ export function Layout() {
         </div>
       </nav>
 
-      {paletteOpen && <CommandPalette materiel={materiel} documents={documents} onClose={closePalette} onNavigate={setSection} onToggleTheme={toggle} theme={theme} />}
+      {paletteOpen && <CommandPalette materiel={materiel} documents={documents} onClose={closePalette} onNavigate={setSection} onToggleTheme={toggle} onNewMateriel={openNewMateriel} theme={theme} />}
+
+      {form.open && <MaterielForm initial={form.editing} onSave={saveMateriel} onClose={closeForm} />}
     </div>
   )
 }

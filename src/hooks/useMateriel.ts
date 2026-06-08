@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Materiel, MaterielDestination, CentrifugationStatus } from '@/lib/types'
 
@@ -47,21 +47,31 @@ export function useMateriel() {
   const [loading, setLoading] = useState(Boolean(supabase))
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!supabase) return
-    let active = true
-    supabase
+  // Jeton de séquence : seul le résultat de la dernière invocation s'applique
+  // (évite les données périmées entre refetchs concurrents et tout setState
+  // après démontage — le cleanup incrémente le jeton).
+  const seqRef = useRef(0)
+
+  const load = useCallback(() => {
+    if (!supabase) return Promise.resolve()
+    const seq = ++seqRef.current
+    return supabase
       .from('materiel')
       .select('*')
       .order('position', { ascending: true })
       .then(({ data, error: err }) => {
-        if (!active) return
+        if (seq !== seqRef.current) return
         if (err) setError(err.message)
-        else setMateriel((data as MaterielRow[] ?? []).map(rowToMateriel))
+        else { setMateriel((data as MaterielRow[] ?? []).map(rowToMateriel)); setError(null) }
         setLoading(false)
       })
-    return () => { active = false }
   }, [])
 
-  return { materiel, loading, error }
+  useEffect(() => {
+    void load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- invalidation intentionnelle du jeton de séquence au démontage
+    return () => { seqRef.current++ }
+  }, [load])
+
+  return { materiel, loading, error, refetch: load }
 }
