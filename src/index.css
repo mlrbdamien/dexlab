@@ -8,8 +8,8 @@
    ═══════════════════════════════════════════════════════════ */
 
 @theme inline {
-    --font-sans:  'Inter', system-ui, -apple-system, sans-serif;
-    --font-mono:  'JetBrains Mono', ui-monospace, monospace;
+    --font-sans:  'Geist', system-ui, -apple-system, sans-serif;
+    --font-mono:  'Geist Mono', ui-monospace, monospace;
 
     /* Canvas (backgrounds) */
     --color-canvas:   var(--c-canvas);
@@ -40,42 +40,42 @@
     --color-blu-soft: var(--c-blu-soft);
 }
 
-/* ── Light ──────────────────────────────────────────── */
+/* ── Light (monochrome « zinc » froid + accent teal dosé) ── */
 :root, [data-theme="light"] {
-    --c-canvas:   #FCFCFC;
-    --c-canvas-2: #F5F5F4;
-    --c-canvas-3: #EEEEEC;
+    --c-canvas:   #FFFFFF;
+    --c-canvas-2: #FAFAFA;
+    --c-canvas-3: #F4F4F5;
 
-    --c-ink:   #1A1A1A;
-    --c-ink-2: #595959;
-    --c-ink-3: #6A6A6A;
+    --c-ink:   #18181B;
+    --c-ink-2: #52525B;
+    --c-ink-3: #71717A;
 
-    --c-line: #E2E2E0;
+    --c-line: #E8E8EB;
 
     --c-accent:      #0F6E56;
-    --c-accent-soft: #E1F5EE;
-    --c-accent-ink:  #04342C;
+    --c-accent-soft: #E9F4EF;
+    --c-accent-ink:  #0A3D31;
 
-    --c-red: #C62828; --c-red-soft: #FDECEA;
-    --c-grn: #2E7D32; --c-grn-soft: #E8F5E9;
-    --c-org: #B84400; --c-org-soft: #FFF3E0;
-    --c-blu: #1565C0; --c-blu-soft: #E3F2FD;
+    --c-red: #C62828; --c-red-soft: #FBECEA;
+    --c-grn: #2E7D32; --c-grn-soft: #EAF3EB;
+    --c-org: #B84400; --c-org-soft: #FBF0E2;
+    --c-blu: #1565C0; --c-blu-soft: #EAEEFB;
 }
 
-/* ── Dark ───────────────────────────────────────────── */
+/* ── Dark (« zinc » profond froid, là où le style brille) ── */
 [data-theme="dark"] {
-    --c-canvas:   #08090A;
-    --c-canvas-2: #111213;
-    --c-canvas-3: #1A1B1C;
+    --c-canvas:   #09090B;
+    --c-canvas-2: #161619;
+    --c-canvas-3: #202024;
 
-    --c-ink:   #E8E8E8;
-    --c-ink-2: #9A9A9A;
-    --c-ink-3: #8A8A8A;
+    --c-ink:   #FAFAFA;
+    --c-ink-2: #A1A1AA;
+    --c-ink-3: #82828C;
 
-    --c-line: #2A2A2A;
+    --c-line: #26262B;
 
     --c-accent:      #5DCAA5;
-    --c-accent-soft: #122A22;
+    --c-accent-soft: #11231D;
     --c-accent-ink:  #A8EBCF;
 
     --c-red: #EF9A9A; --c-red-soft: #2C1515;
