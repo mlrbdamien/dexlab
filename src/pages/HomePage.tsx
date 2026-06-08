@@ -5,7 +5,7 @@ import { useFavorites } from '@/hooks/useFavorites'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TubeGrid } from '@/components/TubeGrid'
 import { MaterielList, MaterielListSkeleton, MaterielEmptyState } from '@/components/MaterielList'
-import { Markdown } from '@/components/Markdown'
+import { Checklist } from '@/components/Checklist'
 import { MediaGallery } from '@/components/MediaGallery'
 import { formatDate } from '@/lib/format'
 import { docIcon } from '@/lib/docIcons'
@@ -248,7 +248,7 @@ export function HomePage() {
             </button>
           </div>
           {currentDoc.contenu.trim()
-            ? <Markdown>{currentDoc.contenu}</Markdown>
+            ? <Checklist id={currentDoc.id} content={currentDoc.contenu} />
             : <p className="text-[0.82rem] text-ink-3">Ce document est vide.</p>}
 
           <MediaGallery key={currentDoc.id} documentId={currentDoc.id} />
