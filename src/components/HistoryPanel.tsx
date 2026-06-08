@@ -40,13 +40,51 @@ const ACTION_META: Record<AuditEntry['action'], { label: string; cls: string }> 
   DELETE: { label: 'Suppression', cls: 'bg-red-soft text-red' },
 }
 
-function changedFields(old: Record<string, unknown> | null, neu: Record<string, unknown> | null): string[] {
+const CENTRI_LABELS: Record<string, string> = {
+  oui: 'Oui', obligatoire: 'Obligatoire', non: 'Non', variable: 'Variable', na: 'N/A',
+}
+
+// Représentation lisible d'une valeur de champ pour l'affichage avant/après.
+function fmtValue(key: string, v: unknown): string {
+  if (v === null || v === undefined || v === '') return '(vide)'
+  if (typeof v === 'boolean') return v ? 'Oui' : 'Non'
+  if (key === 'centrifugation' && typeof v === 'string') return CENTRI_LABELS[v] ?? v
+  if (Array.isArray(v)) {
+    if (v.length === 0) return '(vide)'
+    return v.map(item => {
+      if (item && typeof item === 'object') {
+        const label = (item as Record<string, unknown>).label
+        const detail = (item as Record<string, unknown>).detail
+        if (typeof label === 'string') return label + (typeof detail === 'string' && detail ? ` (${detail})` : '')
+        return JSON.stringify(item)
+      }
+      return String(item)
+    }).join(' · ')
+  }
+  if (typeof v === 'object') return JSON.stringify(v)
+  return String(v)
+}
+
+function truncate(s: string, n = 180): string {
+  return s.length > n ? s.slice(0, n).trimEnd() + '…' : s
+}
+
+interface FieldDiff { key: string; label: string; before: string; after: string }
+
+function computeDiffs(old: Record<string, unknown> | null, neu: Record<string, unknown> | null): FieldDiff[] {
   if (!old || !neu) return []
   const keys = new Set([...Object.keys(old), ...Object.keys(neu)])
-  const out: string[] = []
+  const out: FieldDiff[] = []
   for (const k of keys) {
     if (IGNORED.has(k)) continue
-    if (JSON.stringify(old[k]) !== JSON.stringify(neu[k])) out.push(FIELD_LABELS[k] ?? k)
+    if (JSON.stringify(old[k]) !== JSON.stringify(neu[k])) {
+      out.push({
+        key: k,
+        label: FIELD_LABELS[k] ?? k,
+        before: truncate(fmtValue(k, old[k])),
+        after: truncate(fmtValue(k, neu[k])),
+      })
+    }
   }
   return out
 }
@@ -112,7 +150,7 @@ export function HistoryPanel({ table, rowId, title, profiles, onClose }: Props) 
             <ol className="space-y-3">
               {entries.map(e => {
                 const meta = ACTION_META[e.action]
-                const fields = e.action === 'UPDATE' ? changedFields(e.old_data, e.new_data) : []
+                const diffs = e.action === 'UPDATE' ? computeDiffs(e.old_data, e.new_data) : []
                 return (
                   <li key={e.id} className="relative rounded-xl border border-line bg-canvas-2/40 p-3.5">
                     <div className="flex flex-wrap items-center gap-2">
@@ -121,10 +159,17 @@ export function HistoryPanel({ table, rowId, title, profiles, onClose }: Props) 
                       <span className="ml-auto text-[0.7rem] text-ink-3">{formatDateTime(e.changed_at)}</span>
                     </div>
                     {e.action === 'UPDATE' && (
-                      fields.length > 0 ? (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {fields.map(f => (
-                            <span key={f} className="rounded-md border border-line bg-canvas px-1.5 py-0.5 text-[0.68rem] text-ink-2">{f}</span>
+                      diffs.length > 0 ? (
+                        <div className="mt-2.5 space-y-2.5">
+                          {diffs.map(d => (
+                            <div key={d.key}>
+                              <div className="text-[0.6rem] font-semibold uppercase tracking-[0.04em] text-ink-3">{d.label}</div>
+                              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.72rem]">
+                                <span className="rounded-md bg-red-soft px-1.5 py-0.5 text-red line-through decoration-red/40 [overflow-wrap:anywhere]">{d.before}</span>
+                                <span className="shrink-0 text-ink-3">→</span>
+                                <span className="rounded-md bg-grn-soft px-1.5 py-0.5 text-grn [overflow-wrap:anywhere]">{d.after}</span>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       ) : (
