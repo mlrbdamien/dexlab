@@ -377,7 +377,6 @@ function TubeFiche({ tube, isFav, onToggleFav, onBack, onEdit, onDelete, linkedD
       )}
 
       <div className="mb-6 flex items-start gap-3.5">
-        <span className="h-12 w-12 shrink-0 rounded-full border-[0.5px] border-black/10 dark:border-white/15" style={{ background: tube.couleur }} />
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-bold text-ink">{tube.nom}</h1>
           {tube.sousTitre && <p className="mt-0.5 font-mono text-[0.75rem] text-ink-2">{tube.sousTitre}</p>}
